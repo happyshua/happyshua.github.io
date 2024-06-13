@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动画生涯个人喜好表生成器 - MCの试验场</title>
+    <meta name=keywords content="动画生涯,个人喜好表生成器,MCの试验场,magiconch,卜卜口">
+    <link rel="stylesheet" href="document.css">
+</head>
+<body>
+    <div class="anime-grid-box"></div>
+    <div class="more-link-box">
+        <a href="https://lab.xinu.ink/list/ex.html">不够填？来试试格子超多的扩展版</a>
+    </div>
+    <footer>
+        <a href="https://lab.xinu.ink/" target="_blank">MCの试验场</a>
+        <a href="https://s.xinu.ink" target="_blank">系统状态</a>
+    </footer>
+    <script src="anime-grid2.js"></script>
+<script>
+const typeTexts = `入坑作
+最喜欢
+看最多次
+最想安利
+
+最佳剧情
+最佳画面
+最佳配乐
+最佳配音
+
+最治愈
+最感动
+最虐心
+最被低估
+
+最过誉
+最离谱
+最讨厌
+`;
+new AnimeGrid({
+    el: document.querySelector('.anime-grid-box'),
+    title: '动画生涯个人喜好表',
+    key: 'margiconch-animes-grid',
+    typeTexts,
+    col: 5,
+    row: 3,
+})
+</script>
+</body>
+</html>
