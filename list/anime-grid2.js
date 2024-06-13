@@ -261,7 +261,7 @@ class AnimeGrid {
         </form>
         <div class="anime-list"></div>
         <div class="foot">
-            <a class="close ui-btn" action="searchFromBangumi">在番组计划搜索</a>
+            <a class="close ui-btn" action="searchFromBangumi">搜索</a>
             <a class="close ui-btn" action="setInputText">没找到，就用搜索框里的文字了</a>
             <a class="close ui-btn" action="setNull">重设为空</a>
             <a class="close ui-btn current" action="closeSearchBox">关闭选框</a>
