@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang=zh-CN>
+	<meta charset=UTF-8>
+	<meta http-equiv=X-UA-Compatible content="IE=edge">
+	<meta name=viewport content="width=device-width,initial-scale=1">
+	<title>福音战士標題生成器</title>
+	<meta name=discription
+		content="福音战士标题生成器 新世纪福音战士 EVA-Matisse-EB マティス-EB EVA-マティス-クラシック Episode Generator 标题画面生成 神奇海螺实验室">
+	<link rel=stylesheet href="i.css%3Fr=rhscl9.css">
+	<header>
+		<h1>福音戰士標題生成器</h1>
+		<h2>Evangelion Title Card Generator</h2>
+	</header>
+	<div style=padding:20px;font-size:14px;color:#a42121;>支持 iOS、Mac Safari、Firefox 啦</div>
+	<div class=app :data-loading=loading>
+		<section class=layout-list>
+			<h2>排版</h2><a class=item v-for="(_layout,index) in layouts" :title=_layout.title
+				:data-checked="layout && layout.id === _layout.id" @click.prevent=setLayout(_layout)
+				:href="`/?layout=${encodeURI(_layout.id)}`"><img :src=_layout.src v-if=_layout.src></a>
+		</section>
+		<div class=content-box v-if=layout>
+			<section class=output-box>
+				<h2>輸出</h2><canvas ref=canvas></canvas>
+			</section>
+			<section class=config-box>
+				<h2>文字</h2>
+				<div class=inputs-box>
+					<div class=input-item v-for="(input,index) in layout.inputs"><template v-if="input.type==='tab'">
+							<h4>{{input.name}}</h4><ui-tabs v-model=texts[index] :options=input.options></ui-tabs>
+						</template><template v-else><input :placeholder=input.placeholder v-model.lazy.trim=texts[index]
+								:minlength=input.minLength :maxlength=input.maxLength></template></div>
+					<div v-if=noMatchMojis.length>
+						<h3>未匹配文字</h3>
+						<div style="padding: 0.5em 0 0.8em;">{{noMatchMojis.join(' , ')}}</div><button
+							class="btn current min" @click=tc() :disabled=!canTc data-text=尝试替换不匹配字形></button>
+						<p class=tip>遇到不匹配字型可先嘗試轉繁體，還不匹配的情况請嘗試替換其他文字<br>实在找不到替换文字可以偷懒安装一份 <b>思源宋体</b> Heavy 字型作为
+							Fallbacks
+					</div>
+					<h3>樣例</h3>
+					<div class=exemple-list>
+						<div class=exemple-item @click=setDefaultTexts(layout) :d="texts.filter(t=>!t.type).join('')"
+							:data-checked="!texts.filter((t,i)=>!layout.inputs[i].type).join('')"><span
+								v-for="input in layout.inputs">{{input.placeholder}}</span></div>
+						<div class=exemple-item v-for="exemple in layout.exemples"
+							:data-checked="texts.join(',') === exemple.join(',')" @click=setExemple(exemple)><span
+								v-for="text in exemple">{{text}}</span></div>
+					</div>
+				</div>
+				<div class=ctrl-box><button class=btn :class="{current:lastAllText!==allText && !noMatchMojis.length}"
+						@click=make() data-text=生成></button> <a class=btn
+						:class="{current:lastAllText===allText && !noMatchMojis.length}" @click=save() :href=output
+						:download=downloadFilename data-text=保存成圖片></a></div>
+				<div class=config-box>
+					<div class=config-item><ui-tabs v-model=config.plan :options=plans></ui-tabs></div>
+					<div class=config-item><ui-switch v-model=config.blur>模糊</ui-switch><ui-switch
+							v-model=config.noise>顆粒</ui-switch><ui-switch
+							v-model=config.convolute>銳化</ui-switch><ui-switch v-model=config.type95>Type 95</ui-switch>
+					</div>
+					<div class=config-item><ui-tabs v-model=config.outputRatio :options=outputRatios></ui-tabs></div>
+				</div>
+				<p class=tip v-if=!haveMatisse>本机安装 <b>Matisse-EB</b> 字体的情况会得到最佳使用体验<br>建议优先安装
+					<b>EVA-Matisse-EB</b>，会更有福音战士味儿<br>Fontworks 的 EVA 联动订阅字体授权在 <a
+						href=https://mojimo.jp/eva>mojimo.jp/eva</a>
+				<p class=tip v-if=haveMatisse>本机已安装 <b>Matisse-EB</b> 字体，字体授权情况请自行确认
+			</section>
+		</div>
+		<div class=ui-shadow v-if=output v-clock>
+			<div class=ui-output-box>
+				<h2>生成好啦</h2><img :src=output :alt=downloadFilename>
+				<p>手机端保存失败时可尝试长按图片 <b>“添加到照片”</b>
+				<div class=ctrl-box><button class="btn current" @click="output = ''">关闭窗口</button></div>
+				<p class=tip>生成图片仅供预览，再利用需自行购买字体授权<br>请使用自带浏览器进行保存图片 
+			</div>
+		</div>
+	</div>
+	<script src="vue.2.6.11.min.js"></script>
+	<script src="c.js%3Fr=rhscl9"></script>
+	<base target=_blank>
+	<footer>
+		<section>
+			<h2>系統狀態</h2><a href=https://s.xinu.ink>點我點我</a>
+		</section>
+		<section>
+			<h2>MCの實驗室</h2><a href=https://lab.xinu.ink>lab.xinu.ink</a>
+		</section>
+	</footer>
