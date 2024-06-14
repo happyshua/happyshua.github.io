@@ -36,6 +36,12 @@
             overflow-y: auto;
         }
 
+        .chat-message {
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
         .model-response {
             background-color: #f9f9f9;
             border: 1px solid #ddd;
@@ -115,6 +121,11 @@
             width: 100%;
         }
 
+        .model-select .apply-button {
+            align-self: center;
+            width: 50%;
+        }
+
         .model-select label {
             display: block;
             margin-bottom: 5px;
@@ -126,11 +137,14 @@
 <body>
     <div id="app">
         <div class="responses">
-            <div v-for="model in selectedModels" :key="model.name" class="model-response">
-                <h3>{{ model.name }}</h3>
-                <div class="response" v-html="model.responseHtml"></div>
-                <div class="response loading" v-if="model.loading">Loading...</div>
-                <div class="response error" v-if="model.error">{{ model.error }}</div>
+            <div v-for="entry in chatHistory" :key="entry.id" class="chat-message">
+                <div v-if="entry.user" class="response">{{ entry.text }}</div>
+                <div v-if="!entry.user" class="model-response">
+                    <h3>{{ entry.model }}</h3>
+                    <div class="response" v-html="entry.responseHtml"></div>
+                    <div class="response loading" v-if="entry.loading">Loading...</div>
+                    <div class="response error" v-if="entry.error">{{ entry.error }}</div>
+                </div>
             </div>
         </div>
         <div class="input-container">
@@ -143,7 +157,7 @@
                 <input type="checkbox" v-model="model.selected">
                 {{ model.name }}
             </label>
-            <button @click="updateSelectedModels">Apply</button>
+            <button class="apply-button" @click="updateSelectedModels">Apply</button>
         </div>
     </div>
     <script>
@@ -154,8 +168,9 @@
                 return {
                     question: '',
                     showModelSelect: false,
+                    chatHistory: [],
                     models: [
-                        { name: "GPT-3", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "GPT-3", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxNDk1ODYwNSwianRpIjoiMGE2OWY2OTktYmQxZS00MWJmLWE5YzQtNTU5NDA3MWQ2MmY3IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJkZGQ1MGUxMDAwYzk0OWNjYmY2ZDM3ZTNjNmViMTk1ZSIsIm5iZiI6MTcxNDk1ODYwNSwiZXhwIjoxNzMwNTEwNjA1LCJ1aWQiOiI2NjM4MzEwYzRkNTEwYmQ5ZWZhNGFiNGYiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.agFeK5NnkIdMwEZ5CYmZYxP4SMg2kF42IvsOnE4B778", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "GPT-4", url: "YOUR_GPT4_API_URL", key: "YOUR_GPT4_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "Claude-3 Opus", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         // Add other models here
@@ -170,21 +185,35 @@
                 updateSelectedModels() {
                     this.selectedModels = this.models.filter(model => model.selected);
                     this.showModelSelect = false;
+                    this.saveSelectedModels();
+                },
+                saveSelectedModels() {
+                    localStorage.setItem('selectedModels', JSON.stringify(this.selectedModels.map(model => model.name)));
+                },
+                loadSelectedModels() {
+                    const savedModels = JSON.parse(localStorage.getItem('selectedModels'));
+                    if (savedModels) {
+                        this.models.forEach(model => {
+                            model.selected = savedModels.includes(model.name);
+                        });
+                        this.updateSelectedModels();
+                    }
                 },
                 async getResponses() {
                     const question = this.question.trim();
                     if (!question) return;
 
-                    this.selectedModels.forEach(model => {
-                        model.loading = true;
-                        model.error = null;
-                    });
+                    const userEntry = { id: Date.now(), text: question, user: true };
+                    this.chatHistory.push(userEntry);
+                    this.question = '';
 
-                    for (const model of this.selectedModels) {
-                        this.fetchResponse(model, question);
-                    }
+                    this.selectedModels.forEach(model => {
+                        const entry = { id: Date.now() + Math.random(), model: model.name, loading: true };
+                        this.chatHistory.push(entry);
+                        this.fetchResponse(model, question, entry);
+                    });
                 },
-                async fetchResponse(model, question) {
+                async fetchResponse(model, question, entry) {
                     try {
                         const response = await fetch(model.url, {
                             method: 'POST',
@@ -212,21 +241,20 @@
                         const data = await response.json();
                         
                         if (data.choices && data.choices.length > 0) {
-                            model.response = data.choices[0].message.content;
-                            model.responseHtml = marked.parse(model.response);
+                            entry.responseHtml = marked.parse(data.choices[0].message.content);
                         } else {
                             throw new Error("Invalid response structure");
                         }
 
-                        model.loading = false;
+                        entry.loading = false;
                     } catch (error) {
-                        model.error = 'Error fetching response: ' + error.message;
-                        model.loading = false;
+                        entry.error = 'Error fetching response: ' + error.message;
+                        entry.loading = false;
                     }
                 }
             },
             mounted() {
-                this.updateSelectedModels();
+                this.loadSelectedModels();
             }
         }).mount('#app');
     </script>
