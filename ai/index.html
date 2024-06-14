@@ -56,6 +56,7 @@
 
         .input-container {
             display: flex;
+            align-items: center;
             padding: 10px 0;
             border-top: 1px solid #ddd;
             background-color: #fff;
@@ -83,6 +84,15 @@
             background-color: #0056b3;
         }
 
+        .toggle-button {
+            background-color: #6c757d;
+            margin-right: 10px;
+        }
+
+        .toggle-button:hover {
+            background-color: #5a6268;
+        }
+
         .model-select {
             position: fixed;
             bottom: 20px;
@@ -92,6 +102,12 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 10px;
+            display: none;
+            flex-direction: column;
+        }
+
+        .model-select.show {
+            display: flex;
         }
 
         .model-select button {
@@ -118,10 +134,11 @@
             </div>
         </div>
         <div class="input-container">
+            <button class="toggle-button" @click="toggleModelSelect">Models</button>
             <input type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
             <button @click="getResponses">Send</button>
         </div>
-        <div class="model-select">
+        <div class="model-select" :class="{ show: showModelSelect }">
             <label v-for="model in models" :key="model.name">
                 <input type="checkbox" v-model="model.selected">
                 {{ model.name }}
@@ -136,6 +153,7 @@
             data() {
                 return {
                     question: '',
+                    showModelSelect: false,
                     models: [
                         { name: "GPT-3", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxNDk1ODYwNSwianRpIjoiMGE2OWY2OTktYmQxZS00MWJmLWE5YzQtNTU5NDA3MWQ2MmY3IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJkZGQ1MGUxMDAwYzk0OWNjYmY2ZDM3ZTNjNmViMTk1ZSIsIm5iZiI6MTcxNDk1ODYwNSwiZXhwIjoxNzMwNTEwNjA1LCJ1aWQiOiI2NjM4MzEwYzRkNTEwYmQ5ZWZhNGFiNGYiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.agFeK5NnkIdMwEZ5CYmZYxP4SMg2kF42IvsOnE4B778", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "GPT-4", url: "YOUR_GPT4_API_URL", key: "YOUR_GPT4_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
@@ -146,8 +164,12 @@
                 };
             },
             methods: {
+                toggleModelSelect() {
+                    this.showModelSelect = !this.showModelSelect;
+                },
                 updateSelectedModels() {
                     this.selectedModels = this.models.filter(model => model.selected);
+                    this.showModelSelect = false;
                 },
                 async getResponses() {
                     const question = this.question.trim();
