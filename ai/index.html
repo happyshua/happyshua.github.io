@@ -18,10 +18,12 @@
         #app {
             background-color: #fff;
             width: 90%;
-            max-width: 800px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
             padding: 20px;
+            overflow-y: auto;
+            height: 90vh;
             display: flex;
             flex-direction: column;
         }
@@ -30,25 +32,21 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
             overflow-y: auto;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background-color: #fafafa;
         }
 
         .model-response {
             background-color: #f9f9f9;
             border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 15px;
+            border-radius: 5px;
+            padding: 10px;
         }
 
         .response {
             white-space: pre-wrap;
             margin-top: 10px;
-            max-height: 150px;
+            max-height: 200px;
             overflow-y: auto;
         }
 
@@ -58,85 +56,52 @@
 
         .input-container {
             display: flex;
-            align-items: center;
-            padding-top: 15px;
+            padding: 10px 0;
             border-top: 1px solid #ddd;
             background-color: #fff;
         }
 
         input {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 10px;
+            border-radius: 5px;
             outline: none;
-            font-size: 16px;
         }
 
         button {
-            padding: 12px 20px;
+            padding: 10px;
             margin-left: 10px;
             background-color: #007bff;
             border: none;
             color: #fff;
-            border-radius: 10px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
         }
 
         button:hover {
             background-color: #0056b3;
         }
 
-        .model-select-btn {
-            background-color: #007bff;
-            border: none;
-            color: #fff;
-            border-radius: 10px;
-            cursor: pointer;
-            padding: 12px 20px;
-            margin-right: 10px;
-            font-size: 16px;
-        }
-
-        .model-select-btn:hover {
-            background-color: #0056b3;
-        }
-
         .model-select {
-            display: none;
             position: fixed;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 20px;
             background-color: #fff;
             border: 1px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            width: 90%;
-            max-width: 400px;
-        }
-
-        .model-select-open {
-            display: block;
-        }
-
-        .model-select label {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .model-select label input {
-            margin-right: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 10px;
         }
 
         .model-select button {
             margin-top: 10px;
             width: 100%;
-            font-size: 16px;
+        }
+
+        .model-select label {
+            display: block;
+            margin-bottom: 5px;
         }
     </style>
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
@@ -153,16 +118,15 @@
             </div>
         </div>
         <div class="input-container">
-            <button class="model-select-btn" @click="toggleModelSelect">Select Models</button>
             <input type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
             <button @click="getResponses">Send</button>
         </div>
-        <div class="model-select" :class="{ 'model-select-open': modelSelectOpen }">
+        <div class="model-select">
             <label v-for="model in models" :key="model.name">
                 <input type="checkbox" v-model="model.selected">
                 {{ model.name }}
             </label>
-            <button @click="applySelectedModels">Apply</button>
+            <button @click="updateSelectedModels">Apply</button>
         </div>
     </div>
     <script>
@@ -173,22 +137,17 @@
                 return {
                     question: '',
                     models: [
-                        { name: "GPT-3", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "GPT-3", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxNDk1ODYwNSwianRpIjoiMGE2OWY2OTktYmQxZS00MWJmLWE5YzQtNTU5NDA3MWQ2MmY3IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJkZGQ1MGUxMDAwYzk0OWNjYmY2ZDM3ZTNjNmViMTk1ZSIsIm5iZiI6MTcxNDk1ODYwNSwiZXhwIjoxNzMwNTEwNjA1LCJ1aWQiOiI2NjM4MzEwYzRkNTEwYmQ5ZWZhNGFiNGYiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.agFeK5NnkIdMwEZ5CYmZYxP4SMg2kF42IvsOnE4B778", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "GPT-4", url: "YOUR_GPT4_API_URL", key: "YOUR_GPT4_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "Claude-3 Opus", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         // Add other models here
                     ],
-                    selectedModels: [],
-                    modelSelectOpen: false
+                    selectedModels: []
                 };
             },
             methods: {
-                toggleModelSelect() {
-                    this.modelSelectOpen = !this.modelSelectOpen;
-                },
-                applySelectedModels() {
+                updateSelectedModels() {
                     this.selectedModels = this.models.filter(model => model.selected);
-                    this.modelSelectOpen = false;
                 },
                 async getResponses() {
                     const question = this.question.trim();
@@ -245,7 +204,7 @@
                 }
             },
             mounted() {
-                this.applySelectedModels();
+                this.updateSelectedModels();
             }
         }).mount('#app');
     </script>
