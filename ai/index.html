@@ -40,6 +40,7 @@
             background-color: #e0e0e0;
             border-radius: 5px;
             padding: 10px;
+            position: relative;
         }
 
         .model-response {
@@ -47,6 +48,7 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             padding: 10px;
+            position: relative;
         }
 
         .response {
@@ -130,6 +132,23 @@
             display: block;
             margin-bottom: 5px;
         }
+
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .copy-button:hover {
+            background-color: #0056b3;
+        }
     </style>
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -139,9 +158,11 @@
         <div class="responses">
             <div v-for="entry in chatHistory" :key="entry.id" class="chat-message">
                 <div v-if="entry.user" class="response">{{ entry.text }}</div>
+                <button class="copy-button" @click="copyText(entry.text)">Copy</button>
                 <div v-if="!entry.user" class="model-response">
                     <h3>{{ entry.model }}</h3>
                     <div class="response" v-html="entry.responseHtml"></div>
+                    <button class="copy-button" @click="copyText(entry.responseHtml)">Copy</button>
                     <div class="response loading" v-if="entry.loading">Loading...</div>
                     <div class="response error" v-if="entry.error">{{ entry.error }}</div>
                 </div>
@@ -254,6 +275,14 @@
                         entry.error = 'Error fetching response: ' + error.message;
                         entry.loading = false;
                     }
+                },
+                copyText(text) {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
                 }
             },
             mounted() {
