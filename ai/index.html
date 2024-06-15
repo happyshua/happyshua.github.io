@@ -170,118 +170,95 @@
                     showModelSelect: false,
                     chatHistory: [],
                     models: [
-                        { name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw", response: '', responseHtml: '', loading: false, error: null, selected: true, conversationId: null },
-                        { name: "🐕GLM4", url: "https://glmapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxNDk1ODYwNSwianRpIjoiMGE2OWY2OTktYmQxZS00MWJmLWE5YzQtNTU5NDA3MWQ2MmY3IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJkZGQ1MGUxMDAwYzk0OWNjYmY2ZDM3ZTNjNmViMTk1ZSIsIm5iZiI6MTcxNDk1ODYwNSwiZXhwIjoxNzMwNTEwNjA1LCJ1aWQiOiI2NjM4MzEwYzRkNTEwYmQ5ZWZhNGFiNGYiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.agFeK5NnkIdMwEZ5CYmZYxP4SMg2kF42IvsOnE4B778", response: '', responseHtml: '', loading: false, error: null, selected: true, conversationId: null },
-                        { name: "💪🏻Bing", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true, conversationId: null },
-                        { name: "🧠META", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true, conversationId: null },
-                        { name: "Claude-3 Opus", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true, conversationId: null },
+                        { name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🐕GLM4", url: "https://glmapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxNDk1ODYwNSwianRpIjoiMGE2OWY2OTktYmQxZS00MWJmLWE5YzQtNTU5NDA3MWQ2MmY3IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJkZGQ1MGUxMDAwYzk0OWNjYmY2ZDM3ZTNjNmViMTk1ZSIsIm5iZiI6MTcxNDk1ODYwNSwiZXhwIjoxNzMwNTEwNjA1LCJ1aWQiOiI2NjM4MzEwYzRkNTEwYmQ5ZWZhNGFiNGYiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.agFeK5NnkIdMwEZ5CYmZYxP4SMg2kF42IvsOnE4B778", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "💪🏻Bing", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🧠META", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "Claude-3 Opus", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         // Add other models here
                     ],
                     selectedModels: []
                 };
             },
-                    methods: {
-            toggleModelSelect() {
-                this.showModelSelect = !this.showModelSelect;
-            },
-            updateSelectedModels() {
-                this.selectedModels = this.models.filter(model => model.selected);
-                this.showModelSelect = false;
-                this.saveSelectedModels();
-            },
-            saveSelectedModels() {
-                localStorage.setItem('selectedModels', JSON.stringify(this.selectedModels.map(model => model.name)));
-            },
-            loadSelectedModels() {
-                const savedModels = JSON.parse(localStorage.getItem('selectedModels'));
-                if (savedModels) {
-                    this.models.forEach(model => {
-                        model.selected = savedModels.includes(model.name);
-                    });
-                    this.updateSelectedModels();
-                }
-            },
-            saveConversations() {
-                const conversations = this.models.reduce((acc, model) => {
-                    if (model.conversationId) {
-                        acc[model.name] = model.conversationId;
+            methods: {
+                toggleModelSelect() {
+                    this.showModelSelect = !this.showModelSelect;
+                },
+                updateSelectedModels() {
+                    this.selectedModels = this.models.filter(model => model.selected);
+                    this.showModelSelect = false;
+                    this.saveSelectedModels();
+                },
+                saveSelectedModels() {
+                    localStorage.setItem('selectedModels', JSON.stringify(this.selectedModels.map(model => model.name)));
+                },
+                loadSelectedModels() {
+                    const savedModels = JSON.parse(localStorage.getItem('selectedModels'));
+                    if (savedModels) {
+                        this.models.forEach(model => {
+                            model.selected = savedModels.includes(model.name);
+                        });
+                        this.updateSelectedModels();
                     }
-                    return acc;
-                }, {});
-                localStorage.setItem('conversations', JSON.stringify(conversations));
-            },
-            loadConversations() {
-                const savedConversations = JSON.parse(localStorage.getItem('conversations'));
-                if (savedConversations) {
-                    this.models.forEach(model => {
-                        if (savedConversations[model.name]) {
-                            model.conversationId = savedConversations[model.name];
+                },
+                async getResponses() {
+                    const question = this.question.trim();
+                    if (!question) return;
+
+                    const userEntry = { id: Date.now(), text: question, user: true };
+                    this.chatHistory.push(userEntry);
+                    this.question = '';
+
+                    this.selectedModels.forEach(model => {
+                        const entry = { id: Date.now() + Math.random(), model: model.name, loading: true, responseHtml: '' };
+                        this.chatHistory.push(entry);
+                        this.fetchResponse(model, question, entry);
+                    });
+                },
+                async fetchResponse(model, question, entry) {
+                    try {
+                        const response = await fetch(model.url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${model.key}`
+                            },
+                            body: JSON.stringify({
+                                model: 'kimi',
+                                messages: [
+                                    {
+                                        role: 'user',
+                                        content: question
+                                    }
+                                ],
+                                use_search: false,
+                                stream: false
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
                         }
-                    });
+
+                        const data = await response.json();
+                        
+                        if (data.choices && data.choices.length > 0) {
+                            entry.responseHtml = marked.parse(data.choices[0].message.content);
+                        } else {
+                            throw new Error("Invalid response structure");
+                        }
+
+                        entry.loading = false;
+                    } catch (error) {
+                        entry.error = 'Error fetching response: ' + error.message;
+                        entry.loading = false;
+                    }
                 }
             },
-            async getResponses() {
-                const question = this.question.trim();
-                if (!question) return;
-
-                const userEntry = { id: Date.now(), text: question, user: true };
-                this.chatHistory.push(userEntry);
-                this.question = '';
-
-                this.selectedModels.forEach(model => {
-                    const entry = { id: Date.now() + Math.random(), model: model.name, loading: true, responseHtml: '' };
-                    this.chatHistory.push(entry);
-                    this.fetchResponse(model, question, entry);
-                });
-            },
-            async fetchResponse(model, question, entry) {
-                try {
-                    const response = await fetch(model.url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${model.key}`
-                        },
-                        body: JSON.stringify({
-                            model: 'kimi',
-                            messages: [
-                                {
-                                    role: 'user',
-                                    content: question
-                                }
-                            ],
-                            use_search: false,
-                            stream: false,
-                            conversation_id: model.conversationId
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const data = await response.json();
-
-                    if (data.choices && data.choices.length > 0) {
-                        entry.responseHtml = marked.parse(data.choices[0].message.content);
-                        model.conversationId = data.conversation_id || model.conversationId;
-                    } else {
-                        throw new Error("Invalid response structure");
-                    }
-
-                    entry.loading = false;
-                    this.saveConversations();
-                } catch (error) {
-                    entry.error = 'Error fetching response: ' + error.message;
-                    entry.loading = false;
-                }
+            mounted() {
+                this.loadSelectedModels();
             }
-        },
-        mounted() {
-            this.loadSelectedModels();
-            this.loadConversations();
-        }
-    }).mount('#app');
-</script>
+        }).mount('#app');
+    </script>
 </body>
 </html>
