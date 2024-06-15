@@ -225,6 +225,11 @@
             background-color: #e0e0e0;
         }
 
+        .history-entry-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
     </style>
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -234,7 +239,7 @@
         <div class="top-bar">
             <button @click="toggleHistoryModal">历史记录</button>
             <button @click="newConversation">+</button>
-            <button @click="exportChatHistory">导出</button>
+            <button @click="exportAllChatHistory">导出</button>
         </div>
         <div class="responses">
             <div v-for="entry in chatHistory" :key="entry.id" class="chat-message">
@@ -268,23 +273,28 @@
                 <button @click="toggleHistoryModal">Close</button>
             </div>
             <div class="chat-history">
-                <div v-for="(history, index) in chatHistoryList" :key="index" class="history-entry" @click="loadHistory(index)">
-                    <p>{{ history.timestamp }}</p>
-                    <p>{{ history.preview }}</p>
+                <div v-for="(history, index) in chatHistoryList" :key="index" class="history-entry">
+                    <div @click="loadHistory(index)">
+                        <p>{{ history.timestamp }}</p>
+                        <p>{{ history.preview }}</p>
+                    </div>
+                    <div class="history-entry-buttons">
+                        <button @click="exportSingleChatHistory(index)">导出</button>
+                        <button @click="deleteChatHistory(index)">删除</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <script>
         const { createApp } = Vue;
-
         createApp({
             data() {
                 return {
                     question: '',
+                    chatHistory: [],
                     showModelSelect: false,
                     showHistoryModal: false,
-                    chatHistory: [],
                     chatHistoryList: this.loadChatHistoryList(),
                     models: [
                         { name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw", response: '', responseHtml: '', loading: false, error: null, selected: true },
@@ -393,6 +403,9 @@
                 },
                 saveChatHistory() {
                     const chatHistoryList = JSON.parse(localStorage.getItem('chatHistoryList')) || [];
+                    if (this.chatHistory.length === 0 || (this.chatHistory.length === 1 && !this.chatHistory[0].text.trim())) {
+                        return; // Skip saving if chat history is empty or contains only one empty entry
+                    }
                     chatHistoryList.push({
                         timestamp: new Date().toLocaleString(),
                         chatHistory: this.chatHistory
@@ -406,6 +419,10 @@
                     this.toggleHistoryModal();
                 },
                 newConversation() {
+                    if (this.chatHistory.length === 0 || (this.chatHistory.length === 1 && !this.chatHistory[0].text.trim())) {
+                        alert('不能新建一个空白的聊天记录！');
+                        return; // Prevent creating a new conversation if the current one is empty or contains only one empty entry
+                    }
                     this.saveChatHistory();
                     this.chatHistory = [];
                 },
@@ -418,7 +435,7 @@
                             text += `Model (${entry.model}): ${entry.responseHtml.replace(/<[^>]+>/g, '')}\n`;
                         }
                     });
-                    const blob = new Blob([text], { type: 'text/plain' });
+                    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -427,6 +444,56 @@
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
+                },
+                exportAllChatHistory() {
+                    const historyList = JSON.parse(localStorage.getItem('chatHistoryList')) || [];
+                    let text = '';
+                    historyList.forEach(history => {
+                        history.chatHistory.forEach(entry => {
+                            if (entry.user) {
+                                text += `User: ${entry.text}\n`;
+                            } else {
+                                text += `Model (${entry.model}): ${entry.responseHtml.replace(/<[^>]+>/g, '')}\n`;
+                            }
+                        });
+                        text += '\n';
+                    });
+                    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'all_chat_history.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                exportSingleChatHistory(index) {
+                    const chatHistoryList = JSON.parse(localStorage.getItem('chatHistoryList'));
+                    const chatHistory = chatHistoryList[index].chatHistory;
+                    let text = '';
+                    chatHistory.forEach(entry => {
+                        if (entry.user) {
+                            text += `User: ${entry.text}\n`;
+                        } else {
+                            text += `Model (${entry.model}): ${entry.responseHtml.replace(/<[^>]+>/g, '')}\n`;
+                        }
+                    });
+                    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `chat_history_${index}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                deleteChatHistory(index) {
+                    let chatHistoryList = JSON.parse(localStorage.getItem('chatHistoryList'));
+                    chatHistoryList.splice(index, 1);
+                    localStorage.setItem('chatHistoryList', JSON.stringify(chatHistoryList));
+                    this.chatHistoryList = this.loadChatHistoryList();
                 }
             },
             mounted() {
