@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-AI Response App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        #app {
+            background-color: #fff;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar button {
+            background-color: #fff;
+            color: #007bff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .top-bar button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .responses {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .chat-message, .model-response {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .response {
+            white-space: pre-wrap;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            color: #888;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            border-top: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        button {
+            padding: 10px;
+            margin-left: 10px;
+            background-color: #007bff;
+            border: none;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .toggle-button {
+            background-color: #6c757d;
+            margin-right: 10px;
+        }
+
+        .toggle-button:hover {
+            background-color: #5a6268;
+        }
+
+        .model-select {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 300px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .model-select.show {
+            display: flex;
+        }
+
+        .model-select-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .model-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .model-item {
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+            cursor: grab;
+        }
+
+        .model-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .close-button {
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .close-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="top-bar">
+            <button class="toggle-button" @click="toggleModelSelect">选择模型</button>
+            <h2>Multi-AI Response App</h2>
+        </div>
+        <div class="responses">
+            <div v-for="(response, index) in responses" :key="index" class="model-response">
+                <strong>{{ response.model }}</strong>
+                <div class="response" v-html="response.content"></div>
+            </div>
+        </div>
+        <div class="input-container">
+            <input v-model="inputMessage" placeholder="输入你的问题..." />
+            <button @click="sendMessage">发送</button>
+        </div>
+
+        <div class="model-select" ref="modelSelect">
+            <div class="model-select-header">
+                <h4>选择模型并排序</h4>
+                <button class="close-button" @click="toggleModelSelect">关闭</button>
+            </div>
+            <ul class="model-list" ref="modelList">
+                <li v-for="(model, index) in models" :key="model.name" class="model-item">
+                    <label>
+                        <input type="checkbox" v-model="model.selected"> {{ model.name }}
+                    </label>
+                </li>
+            </ul>
+            <button class="apply-button" @click="updateSelectedModels">应用</button>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    inputMessage: '',
+                    responses: [],
+                    models: [
+                        { name: 'Model A', apiUrl: 'https://api.modela.com', apiKey: 'API_KEY_A', selected: true },
+                        { name: 'Model B', apiUrl: 'https://api.modelb.com', apiKey: 'API_KEY_B', selected: true },
+                        { name: 'Model C', apiUrl: 'https://api.modelc.com', apiKey: 'API_KEY_C', selected: false }
+                    ],
+                    selectedModels: []
+                };
+            },
+            mounted() {
+                this.loadSelectedModels();
+
+                this.sortable = new Sortable(this.$refs.modelList, {
+                    animation: 150,
+                    onEnd: this.updateModelOrder
+                });
+            },
+            methods: {
+                toggleModelSelect() {
+                    this.$refs.modelSelect.classList.toggle('show');
+                },
+                updateSelectedModels() {
+                    this.selectedModels = this.models.filter(model => model.selected);
+                    this.saveSelectedModels();
+                    this.toggleModelSelect();
+                },
+                sendMessage() {
+                    if (this.inputMessage.trim() === '') return;
+                    const userMessage = this.inputMessage;
+                    this.responses.push({ model: 'User', content: userMessage });
+                    this.inputMessage = '';
+                    this.fetchResponses(userMessage);
+                },
+                fetchResponses(message) {
+                    this.selectedModels.forEach(model => {
+                        this.responses.push({ model: model.name, content: '加载中...' });
+                        fetch(model.apiUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${model.apiKey}`
+                            },
+                            body: JSON.stringify({ message: message })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            const responseIndex = this.responses.findIndex(r => r.model === model.name && r.content === '加载中...');
+                            if (responseIndex !== -1) {
+                                this.responses[responseIndex].content = data.response;
+                            }
+                        })
+                        .catch(error => {
+                            const responseIndex = this.responses.findIndex(r => r.model === model.name && r.content === '加载中...');
+                            if (responseIndex !== -1) {
+                                this.responses[responseIndex].content = '错误: ' + error.message;
+                            }
+                        });
+                    });
+                },
+                updateModelOrder(event) {
+                    const movedItem = this.models.splice(event.oldIndex, 1)[0];
+                    this.models.splice(event.newIndex, 0, movedItem);
+                    this.saveSelectedModels();
+                },
+                saveSelectedModels() {
+                    const modelOrder = this.models.map(model => model.name);
+                    localStorage.setItem('selectedModels', JSON.stringify(this.selectedModels.map(model => model.name)));
+                    localStorage.setItem('modelOrder', JSON.stringify(modelOrder));
+                },
+                loadSelectedModels() {
+                    const savedModels = JSON.parse(localStorage.getItem('selectedModels'));
+                    const modelOrder = JSON.parse(localStorage.getItem('modelOrder'));
+                    
+                    if (modelOrder) {
+                        this.models.sort((a, b) => modelOrder.indexOf(a.name) - modelOrder.indexOf(b.name));
+                    }
+
+                    if (savedModels) {
+                        this.models.forEach(model => {
+                            model.selected = savedModels.includes(model.name);
+                        });
+                        this.updateSelectedModels();
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
