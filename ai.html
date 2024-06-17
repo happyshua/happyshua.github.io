@@ -25,7 +25,7 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
             padding: 20px;
-            overflow-y: auto;
+            overflow-y: hidden;
             height: 90vh;
             display: flex;
             flex-direction: column;
@@ -37,6 +37,7 @@
             gap: 10px;
             overflow-y: auto;
             margin-bottom: 20px;
+            padding-right: 10px;
         }
         .bubble {
             position: relative;
@@ -69,7 +70,6 @@
         }
         .input-container {
             display: flex;
-            margin-top: auto;
             width: 100%;
         }
         input {
@@ -96,22 +96,14 @@
 <body class="mdui-theme-primary-indigo mdui-theme-accent-pink">
     <div id="app" class="mdui-container">
         <div class="responses mdui-typo">
-            <div v-for="model in models" :key="model.name">
-                <div class="bubble user-bubble">
-                    <span>{{ question }}</span>
-                    <button class="copy-btn mdui-btn mdui-btn-icon" @click="copyToClipboard(question)">
+            <div v-for="message in messages" :key="message.id" class="model-response">
+                <div class="bubble" :class="message.type">
+                    <div v-if="message.type === 'ai-bubble'" class="model-name">{{ message.model }}</div>
+                    <div v-html="message.content"></div>
+                    <button class="copy-btn mdui-btn mdui-btn-icon" @click="copyToClipboard(message.rawContent)">
                         <i class="mdui-icon material-icons">content_copy</i>
                     </button>
                 </div>
-                <div class="bubble ai-bubble" v-if="model.responseHtml">
-                    <div class="model-name">{{ model.name }}</div>
-                    <div v-html="model.responseHtml"></div>
-                    <button class="copy-btn mdui-btn mdui-btn-icon" @click="copyToClipboard(model.response)">
-                        <i class="mdui-icon material-icons">content_copy</i>
-                    </button>
-                </div>
-                <div class="response loading" v-if="model.loading">Loading...</div>
-                <div class="response error" v-if="model.error">{{ model.error }}</div>
             </div>
         </div>
         <div class="input-container mdui-textfield mdui-textfield-floating-label">
@@ -125,6 +117,7 @@
             data() {
                 return {
                     question: '',
+                    messages: [],
                     models: [
                         { name: "GPT-3", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "", response: '', responseHtml: '', loading: false, error: null },
                         { name: "GPT-4", url: "https://cfwk.b1ng.chat/api/v1/chat/completions", key: "", response: '', responseHtml: '', loading: false, error: null },
@@ -138,13 +131,14 @@
                 async getResponses() {
                     const question = this.question.trim();
                     if (!question) return;
+                    this.addMessage(question, 'user-bubble', 'User');
+                    this.question = '';
                     this.models.forEach(model => {
                         model.loading = true;
                         model.error = null;
-                    });
-                    for (const model of this.models) {
+                        this.addMessage('Loading...', 'ai-bubble', model.name);
                         this.fetchResponse(model, question);
-                    }
+                    });
                 },
                 async fetchResponse(model, question) {
                     try {
@@ -166,15 +160,28 @@
                         }
                         const data = await response.json();
                         if (data.choices && data.choices.length > 0) {
-                            model.response = data.choices[0].message.content;
-                            model.responseHtml = marked.parse(model.response);
+                            const content = data.choices[0].message.content;
+                            model.response = content;
+                            model.responseHtml = marked.parse(content);
+                            this.updateLastMessage(content, model.name);
                         } else {
                             throw new Error("Invalid response structure");
                         }
                         model.loading = false;
                     } catch (error) {
                         model.error = 'Error fetching response: ' + error.message;
+                        this.updateLastMessage(model.error, model.name, true);
                         model.loading = false;
+                    }
+                },
+                addMessage(content, type, model) {
+                    this.messages.push({ id: Date.now() + Math.random(), content, rawContent: content, type, model });
+                },
+                updateLastMessage(content, model, isError = false) {
+                    const message = this.messages.find(msg => msg.model === model && msg.content === 'Loading...');
+                    if (message) {
+                        message.content = isError ? `<span style="color: red;">${content}</span>` : marked.parse(content);
+                        message.rawContent = content;
                     }
                 },
                 copyToClipboard(text) {
