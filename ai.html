@@ -102,6 +102,20 @@
         .history-modal {
             padding: 20px;
         }
+        .history-session {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-info {
+            flex: 1;
+        }
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body class="mdui-theme-primary-indigo mdui-theme-accent-pink">
@@ -132,13 +146,19 @@
         <div id="history-dialog" class="mdui-dialog history-modal">
             <div class="mdui-dialog-title">Chat History</div>
             <div class="mdui-dialog-content">
-                <div v-for="session in chatHistory" :key="session.id" class="history-session">
-                    <h4>Session {{ session.id }}</h4>
-                    <div v-for="message in session.messages" :key="message.id" class="model-response">
-                        <div class="bubble" :class="message.type">
-                            <div v-if="message.type === 'ai-bubble'" class="model-name">{{ message.model }}</div>
-                            <div v-html="message.content"></div>
-                        </div>
+                <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
+                    <div class="history-info">
+                        <h4>Session {{ index + 1 }}</h4>
+                        <p>{{ getSessionSummary(session) }}</p>
+                        <p><small>{{ session.timestamp }}</small></p>
+                    </div>
+                    <div class="history-actions">
+                        <button class="mdui-btn mdui-btn-icon" @click="deleteSession(index)">
+                            <i class="mdui-icon material-icons">delete</i>
+                        </button>
+                        <button class="mdui-btn mdui-btn-icon" @click="exportSession(session)">
+                            <i class="mdui-icon material-icons">save_alt</i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -215,17 +235,17 @@
                     }
                 },
                 addMessage(content, type, model) {
-                    this.messages.push({ id: Date.now() + Math.random(), content, rawContent: content, type, model });
+                    this.messages.push({ id: Date.now() + Math.random(), content, type, model, rawContent: content });
                 },
                 updateLastMessage(content, model, isError = false) {
-                    const message = this.messages.find(msg => msg.model === model && msg.content === 'Loading...');
-                    if (message) {
-                        message.content = isError ? `<span style="color: red;">${content}</span>` : marked.parse(content);
-                        message.rawContent = content;
+                    const index = this.messages.findIndex(message => message.content === 'Loading...' && message.model === model);
+                    if (index !== -1) {
+                        this.messages[index].content = isError ? `<span style="color: red;">${content}</span>` : content;
+                        this.messages[index].rawContent = content;
                     }
                 },
-                copyToClipboard(text) {
-                    navigator.clipboard.writeText(text).then(() => {
+                copyToClipboard(content) {
+                    navigator.clipboard.writeText(content).then(() => {
                         mdui.snackbar({ message: 'Text copied to clipboard!' });
                     }).catch(err => {
                         mdui.snackbar({ message: 'Failed to copy text: ' + err });
@@ -242,13 +262,38 @@
                     }
 
                     if (currentSession.some(msg => msg.type === 'user-bubble' || msg.type === 'ai-bubble')) {
-                        this.chatHistory.push({ id: this.chatHistory.length + 1, messages: [...currentSession] });
+                        const timestamp = new Date().toLocaleString();
+                        this.chatHistory.push({ id: this.chatHistory.length + 1, messages: [...currentSession], timestamp });
                         localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
                     }
                 },
                 showHistory() {
                     const dialog = new mdui.Dialog('#history-dialog');
                     dialog.open();
+                },
+                getSessionSummary(session) {
+                    const firstMessage = session.messages.find(msg => msg.type === 'user-bubble');
+                    const firstResponse = session.messages.find(msg => msg.type === 'ai-bubble');
+                    let summary = '';
+                    if (firstMessage) summary += `Q: ${firstMessage.content.substring(0, 20)}... `;
+                    if (firstResponse) summary += `A: ${firstResponse.content.substring(0, 20)}...`;
+                    return summary || 'No summary available';
+                },
+                deleteSession(index) {
+                    this.chatHistory.splice(index, 1);
+                    localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+                },
+                exportSession(session) {
+                    const textContent = session.messages.map(msg => `[${msg.model}]: ${msg.rawContent}`).join('\n');
+                    const blob = new Blob([textContent], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `chat-session-${session.id}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
                 }
             }
         }).mount('#app');
