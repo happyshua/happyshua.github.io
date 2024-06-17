@@ -24,11 +24,17 @@
             max-width: 1000px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
-            padding: 20px;
-            overflow-y: hidden;
-            height: 90vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
+        }
+        .top-bar {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         .responses {
             flex: 1;
@@ -37,7 +43,7 @@
             gap: 10px;
             overflow-y: auto;
             margin-bottom: 20px;
-            padding-right: 10px;
+            padding: 20px;
         }
         .bubble {
             position: relative;
@@ -71,6 +77,8 @@
         .input-container {
             display: flex;
             width: 100%;
+            padding: 10px;
+            border-top: 1px solid #ddd;
         }
         input {
             flex: 1;
@@ -91,10 +99,19 @@
         button:hover {
             background-color: #0056b3;
         }
+        .history-modal {
+            padding: 20px;
+        }
     </style>
 </head>
 <body class="mdui-theme-primary-indigo mdui-theme-accent-pink">
     <div id="app" class="mdui-container">
+        <div class="top-bar">
+            <button class="mdui-btn mdui-btn-icon" @click="showHistory">
+                <i class="mdui-icon material-icons">history</i>
+            </button>
+            <div>Multi-AI Response App</div>
+        </div>
         <div class="responses mdui-typo">
             <div v-for="message in messages" :key="message.id" class="model-response">
                 <div class="bubble" :class="message.type">
@@ -110,6 +127,25 @@
             <input class="mdui-textfield-input" type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
             <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme" @click="getResponses">Send</button>
         </div>
+
+        <!-- History Dialog -->
+        <div id="history-dialog" class="mdui-dialog history-modal">
+            <div class="mdui-dialog-title">Chat History</div>
+            <div class="mdui-dialog-content">
+                <div v-for="session in chatHistory" :key="session.id" class="history-session">
+                    <h4>Session {{ session.id }}</h4>
+                    <div v-for="message in session.messages" :key="message.id" class="model-response">
+                        <div class="bubble" :class="message.type">
+                            <div v-if="message.type === 'ai-bubble'" class="model-name">{{ message.model }}</div>
+                            <div v-html="message.content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mdui-dialog-actions">
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>Close</button>
+            </div>
+        </div>
     </div>
     <script>
         const { createApp } = Vue;
@@ -118,6 +154,7 @@
                 return {
                     question: '',
                     messages: [],
+                    chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
                     models: [
                         { name: "GPT-3", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "", response: '', responseHtml: '', loading: false, error: null },
                         { name: "GPT-4", url: "https://cfwk.b1ng.chat/api/v1/chat/completions", key: "", response: '', responseHtml: '', loading: false, error: null },
@@ -128,7 +165,7 @@
                 };
             },
             methods: {
-                async getResponses() {
+                getResponses() {
                     const question = this.question.trim();
                     if (!question) return;
                     this.addMessage(question, 'user-bubble', 'User');
@@ -139,6 +176,7 @@
                         this.addMessage('Loading...', 'ai-bubble', model.name);
                         this.fetchResponse(model, question);
                     });
+                    this.saveChatHistory();
                 },
                 async fetchResponse(model, question) {
                     try {
@@ -168,10 +206,12 @@
                             throw new Error("Invalid response structure");
                         }
                         model.loading = false;
+                        this.saveChatHistory();
                     } catch (error) {
                         model.error = 'Error fetching response: ' + error.message;
                         this.updateLastMessage(model.error, model.name, true);
                         model.loading = false;
+                        this.saveChatHistory();
                     }
                 },
                 addMessage(content, type, model) {
@@ -190,6 +230,25 @@
                     }).catch(err => {
                         mdui.snackbar({ message: 'Failed to copy text: ' + err });
                     });
+                },
+                saveChatHistory() {
+                    const currentSession = this.messages;
+                    if (currentSession.length === 0) return;
+
+                    const lastChatIndex = this.chatHistory.length - 1;
+                    const lastChat = this.chatHistory[lastChatIndex];
+                    if (lastChat && !lastChat.messages.some(msg => msg.type === 'user-bubble' || msg.type === 'ai-bubble')) {
+                        this.chatHistory.pop();
+                    }
+
+                    if (currentSession.some(msg => msg.type === 'user-bubble' || msg.type === 'ai-bubble')) {
+                        this.chatHistory.push({ id: this.chatHistory.length + 1, messages: [...currentSession] });
+                        localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+                    }
+                },
+                showHistory() {
+                    const dialog = new mdui.Dialog('#history-dialog');
+                    dialog.open();
                 }
             }
         }).mount('#app');
