@@ -30,9 +30,47 @@
             display: flex;
             flex-direction: column;
         }
+        .responses {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .bubble {
+            position: relative;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 60%;
+            word-wrap: break-word;
+        }
+        .user-bubble {
+            background-color: #cce5ff;
+            align-self: flex-end;
+        }
+        .ai-bubble {
+            background-color: #e2e3e5;
+            align-self: flex-start;
+        }
+        .model-name {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #007bff;
+        }
         .input-container {
             display: flex;
             margin-top: auto;
+            width: 100%;
         }
         input {
             flex: 1;
@@ -53,54 +91,25 @@
         button:hover {
             background-color: #0056b3;
         }
-        .responses {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            overflow-y: auto;
-        }
-        .model-response {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .bubble {
-            position: relative;
-            padding: 10px;
-            border-radius: 10px;
-            max-width: 80%;
-        }
-        .user-bubble {
-            background-color: #cce5ff;
-            align-self: flex-end;
-        }
-        .ai-bubble {
-            background-color: #e2e3e5;
-            align-self: flex-start;
-        }
-        .copy-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #007bff;
-        }
     </style>
 </head>
 <body class="mdui-theme-primary-indigo mdui-theme-accent-pink">
     <div id="app" class="mdui-container">
         <div class="responses mdui-typo">
-            <div v-for="model in models" :key="model.name" class="model-response mdui-card mdui-shadow-3">
-                <h3 class="mdui-card-header">{{ model.name }}</h3>
+            <div v-for="model in models" :key="model.name">
                 <div class="bubble user-bubble">
                     <span>{{ question }}</span>
                     <button class="copy-btn mdui-btn mdui-btn-icon" @click="copyToClipboard(question)">
                         <i class="mdui-icon material-icons">content_copy</i>
                     </button>
                 </div>
-                <div class="bubble ai-bubble" v-html="model.responseHtml" v-if="model.responseHtml"></div>
+                <div class="bubble ai-bubble" v-if="model.responseHtml">
+                    <div class="model-name">{{ model.name }}</div>
+                    <div v-html="model.responseHtml"></div>
+                    <button class="copy-btn mdui-btn mdui-btn-icon" @click="copyToClipboard(model.response)">
+                        <i class="mdui-icon material-icons">content_copy</i>
+                    </button>
+                </div>
                 <div class="response loading" v-if="model.loading">Loading...</div>
                 <div class="response error" v-if="model.error">{{ model.error }}</div>
             </div>
@@ -117,7 +126,7 @@
                 return {
                     question: '',
                     models: [
-                        { name: "GPT-3", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw", response: '', responseHtml: '', loading: false, error: null },
+                        { name: "GPT-3", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "", response: '', responseHtml: '', loading: false, error: null },
                         { name: "GPT-4", url: "https://cfwk.b1ng.chat/api/v1/chat/completions", key: "", response: '', responseHtml: '', loading: false, error: null },
                         { name: "GPT-4o", url: "YOUR_GPT4O_API_URL", key: "", response: '', responseHtml: '', loading: false, error: null },
                         { name: "Claude-3 Opus", url: "YOUR_CLAUDE3_API_URL", key: "", response: '', responseHtml: '', loading: false, error: null },
