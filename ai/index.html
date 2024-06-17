@@ -402,10 +402,19 @@
                     }));
                 },
                 saveChatHistory() {
-                    const chatHistoryList = JSON.parse(localStorage.getItem('chatHistoryList')) || [];
-                    if (this.chatHistory.length === 0 || (this.chatHistory.length === 1 && !this.chatHistory[0].text.trim())) {
-                        return; // Skip saving if chat history is empty or contains only one empty entry
-                    }
+    const chatHistoryList = JSON.parse(localStorage.getItem('chatHistoryList')) || [];
+    // 检查聊天记录是否为空，忽略只有空白消息的情况
+    const hasContent = this.chatHistory.some(entry => entry.text.trim() !== '' || !entry.user);
+    if (hasContent) {
+        chatHistoryList.push({
+            timestamp: new Date().toLocaleString(),
+            chatHistory: this.chatHistory
+        }
+        };
+        localStorage.setItem('chatHistoryList', JSON.stringify(chatHistoryList));
+        this.chatHistoryList = this.loadChatHistoryList();
+    }
+},
                     chatHistoryList.push({
                         timestamp: new Date().toLocaleString(),
                         chatHistory: this.chatHistory
