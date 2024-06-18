@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-AI Response App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui/dist/css/mdui.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/mdui/dist/js/mdui.min.js"></script>
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #app {
+            background-color: #fff;
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .top-bar {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .responses {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .bubble {
+            position: relative;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 60%;
+            word-wrap: break-word;
+        }
+        .user-bubble {
+            background-color: #cce5ff;
+            align-self: flex-end;
+        }
+        .ai-bubble {
+            background-color: #e2e3e5;
+            align-self: flex-start;
+        }
+        .model-name {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #007bff;
+        }
+        .input-container {
+            display: flex;
+            width: 100%;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+        button {
+            padding: 10px;
+            margin-left: 10px;
+            background-color: #007bff;
+            border: none;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .history-modal {
+            padding: 20px;
+        }
+        .history-session {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-info {
+            flex: 1;
+        }
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body class="mdui-theme-primary-indigo mdui-theme-accent-pink">
+    <div id="app" class="mdui-container">
+        <div class="top-bar">
+            <button class="mdui-btn mdui-btn-icon" @click="showHistory">
+                <i class="mdui-icon material-icons">history</i>
+            </button>
+            <div>Multi-AI Response App</div>
+            <button class="mdui-btn mdui-btn-icon" @click="newChat">
+                <i class="mdui-icon material-icons">add</i>
+            </button>
+        </div>
+        <div class="responses mdui-typo">
+            <div v-for="message in messages" :key="message.id" class="model-response">
+                <div class="bubble" :class="message.type">
+                    <div v-if="message.type === 'ai-bubble'" class="model-name">{{ message.model }}</div>
+                    <div v-html="message.content"></div>
+                    <button class="copy-btn mdui-btn mdui-btn-icon" @click="copyToClipboard(message.rawContent)">
+                        <i class="mdui-icon material-icons">content_copy</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="input-container mdui-textfield mdui-textfield-floating-label">
+            <input class="mdui-textfield-input" type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
+            <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme" @click="getResponses">Send</button>
+        </div>
+
+        <!-- History Dialog -->
+        <div id="history-dialog" class="mdui-dialog history-modal">
+            <div class="mdui-dialog-title">Chat History</div>
+            <div class="mdui-dialog-content">
+                <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
+                    <div class="history-info" @click="loadChat(session)">
+                        <h4>Session {{ index + 1 }}</h4>
+                        <p>{{ getSessionSummary(session) }}</p>
+                        <p><small>{{ session.timestamp }}</small></p>
+                    </div>
+                    <div class="history-actions">
+                        <button class="mdui-btn mdui-btn-icon" @click="deleteSession(index)">
+                            <i class="mdui-icon material-icons">delete</i>
+                        </button>
+                        <button class="mdui-btn mdui-btn-icon" @click="exportSession(session)">
+                            <i class="mdui-icon material-icons">save_alt</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mdui-dialog-actions">
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>Close</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    question: '',
+                    messages: [],
+                    chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
+                    models: [
+                        { name: "GPT-3", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "", response: '', responseHtml: '', loading: false, error: null },
+                        { name: "GPT-4", url: "https://cfwk.b1ng.chat/api/v1/chat/completions", key: "", response: '', responseHtml: '', loading: false, error: null },
+                        { name: "GPT-4o", url: "YOUR_GPT4O_API_URL", key: "", response: '', responseHtml: '', loading: false, error: null },
+                        { name: "Claude-3 Opus", url: "YOUR_CLAUDE3_API_URL", key: "", response: '', responseHtml: '', loading: false, error: null },
+                        // Add other models here
+                    ]
+                };
+            },
+            methods: {
+                getResponses() {
+                    const question = this.question.trim();
+                    if (!question) return;
+                    this.addMessage(question, 'user-bubble', 'User');
+                    this.question = '';
+                    this.models.forEach(model => {
+                        model.loading = true;
+                        model.error = null;
+                        this.addMessage('Loading...', 'ai-bubble', model.name);
+                        this.fetchResponse(model, question);
+                    });
+                    this.saveChatHistory();
+                },
+                async fetchResponse(model, question) {
+                    try {
+                        const response = await fetch(model.url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${model.key}`
+                            },
+                            body: JSON.stringify({
+                                model: 'kimi',
+                                messages: [{ role: 'user', content: question }],
+                                use_search: false,
+                                stream: false
+                            })
+                        });
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const data = await response.json();
+                        if (data.choices && data.choices.length > 0) {
+                            const content = data.choices[0].message.content;
+                            model.response = content;
+                            model.responseHtml = marked.parse(content);
+                            this.updateLastMessage(content, model.name);
+                        } else {
+                            throw new Error("Invalid response structure");
+                        }
+                        model.loading = false;
+                        this.saveChatHistory();
+                    } catch (error) {
+                        model.error = 'Error fetching response: ' + error.message;
+                        this.updateLastMessage(model.error, model.name, true);
+                        model.loading = false;
+                        this.saveChatHistory();
+                    }
+                },
+                addMessage(content, type, model) {
+                    this.messages.push({ id: Date.now(), content: marked.parse(content), type, model, rawContent: content });
+                },
+                updateLastMessage(content, model, isError = false) {
+                    const index = this.messages.findIndex(message => message.content === 'Loading...' && message.model === model);
+                    if (index !== -1) {
+                        this.messages[index].content = isError ? `<span style="color: red;">${content}</span>` : marked.parse(content);
+                        this.messages[index].rawContent = content;
+                    }
+                },
+                copyToClipboard(content) {
+                    navigator.clipboard.writeText(content).then(() => {
+                        mdui.snackbar({ message: 'Text copied to clipboard!' });
+                    }).catch(err => {
+                        mdui.snackbar({ message: 'Failed to copy text: ' + err });
+                    });
+                },
+                saveChatHistory() {
+                    const currentSession = this.messages;
+                    if (currentSession.length === 0) return;
+                    const lastChatIndex = this.chatHistory.length - 1;
+                    const lastChat = this.chatHistory[lastChatIndex];
+                    if (lastChat && !lastChat.messages.some(msg => msg.type === 'user-bubble' || msg.type === 'ai-bubble')) {
+                        this.chatHistory.pop();
+                    }
+                    if (currentSession.some(msg => msg.type === 'user-bubble' || msg.type === 'ai-bubble')) {
+                        const timestamp = new Date().toLocaleString();
+                        this.chatHistory.push({ id: this.chatHistory.length + 1, messages: [...currentSession], timestamp });
+                        localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+                    }
+                },
+                showHistory() {
+                    const dialog = new mdui.Dialog('#history-dialog');
+                    dialog.open();
+                },
+                getSessionSummary(session) {
+                    const firstMessage = session.messages.find(msg => msg.type === 'user-bubble');
+                    const firstResponse = session.messages.find(msg => msg.type === 'ai-bubble');
+                    let summary = '';
+                    if (firstMessage) summary += `Q: ${firstMessage.rawContent.substring(0, 20)}... `;
+                    if (firstResponse) summary += `A: ${firstResponse.rawContent.substring(0, 20)}...`;
+                    return summary || 'No summary available';
+                },
+                deleteSession(index) {
+                    this.chatHistory.splice(index, 1);
+                    localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+                },
+                exportSession(session) {
+                    const textContent = session.messages.map(msg => `[${msg.model}]: ${msg.rawContent}`).join('\n');
+                    const blob = new Blob([textContent], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `chat-session-${session.id}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                loadChat(session) {
+                    this.messages = [...session.messages];
+                    this.saveChatHistory();
+                },
+                newChat() {
+                    this.saveChatHistory();
+                    this.messages = [];
+                    mdui.snackbar({ message: 'New chat session started!' });
+                }
+            },
+            mounted() {
+                window.addEventListener('beforeunload', () => {
+                    this.saveChatHistory();
+                });
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
