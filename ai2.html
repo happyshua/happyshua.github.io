@@ -272,6 +272,11 @@
                 },
                 saveChatHistory() {
                     if (this.messages.length === 0) return;
+                    const hasContent = this.messages.some(message => message.type === 'user-bubble' || message.type === 'ai-bubble');
+                    if (!hasContent) {
+                        this.messages = [];
+                        return;
+                    }
                     const timestamp = new Date().toLocaleString();
                     let currentSession = this.chatHistory[this.chatHistory.length - 1];
                     if (!currentSession || currentSession.messages.length === 0) {
@@ -313,7 +318,8 @@
                 newChat() {
                     this.saveChatHistory();
                     this.messages = [];
-                    this.chatHistory.push({ id: this.chatHistory.length + 1, messages: [], timestamp: new Date().toLocaleString() });
+                    const newSession = { id: this.chatHistory.length + 1, messages: [], timestamp: new Date().toLocaleString() };
+                    this.chatHistory.push(newSession);
                     this.saveChatHistory();
                     mdui.snackbar({ message: 'New chat session started!' });
                 }
@@ -322,11 +328,17 @@
                 window.addEventListener('beforeunload', () => {
                     this.saveChatHistory();
                 });
-                // Load the last chat session if any and start a new one
+                // Load the last chat session if any
                 if (this.chatHistory.length > 0) {
-                    this.messages = [...this.chatHistory[this.chatHistory.length - 1].messages];
+                    const lastSession = this.chatHistory[this.chatHistory.length - 1];
+                    if (lastSession && lastSession.messages.length > 0) {
+                        this.messages = [...lastSession.messages];
+                    }
                 }
-                this.newChat();
+                // Start a new chat if no messages loaded
+                if (this.messages.length === 0) {
+                    this.newChat();
+                }
             }
         }).mount('#app');
     </script>
