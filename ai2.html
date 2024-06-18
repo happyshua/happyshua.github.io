@@ -273,10 +273,13 @@
                 saveChatHistory() {
                     if (this.messages.length === 0) return;
                     const timestamp = new Date().toLocaleString();
-                    const currentSession = this.chatHistory[this.chatHistory.length - 1] || { id: this.chatHistory.length + 1, messages: [], timestamp };
+                    let currentSession = this.chatHistory[this.chatHistory.length - 1];
+                    if (!currentSession || currentSession.messages.length === 0) {
+                        currentSession = { id: this.chatHistory.length + 1, messages: [], timestamp };
+                        this.chatHistory.push(currentSession);
+                    }
                     currentSession.messages = [...this.messages];
                     currentSession.timestamp = timestamp;
-                    this.chatHistory[this.chatHistory.length - 1] = currentSession;
                     localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
                 },
                 showHistory() {
@@ -311,6 +314,7 @@
                     this.saveChatHistory();
                     this.messages = [];
                     this.chatHistory.push({ id: this.chatHistory.length + 1, messages: [], timestamp: new Date().toLocaleString() });
+                    this.saveChatHistory();
                     mdui.snackbar({ message: 'New chat session started!' });
                 }
             },
@@ -318,12 +322,11 @@
                 window.addEventListener('beforeunload', () => {
                     this.saveChatHistory();
                 });
-                // Load the last chat session if any
+                // Load the last chat session if any and start a new one
                 if (this.chatHistory.length > 0) {
                     this.messages = [...this.chatHistory[this.chatHistory.length - 1].messages];
-                } else {
-                    this.newChat();
                 }
+                this.newChat();
             }
         }).mount('#app');
     </script>
