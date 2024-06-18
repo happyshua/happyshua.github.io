@@ -239,10 +239,7 @@
                         }
                         const data = await response.json();
                         if (data.choices && data.choices.length > 0) {
-                            const content = data.choices[0].message.content;
-                            model.response = content;
-                            model.responseHtml = marked.parse(content);
-                            this.updateLastMessage(content, model.name);
+                            this.updateLastMessage(data.choices[0].message.content, model.name);
                         } else {
                             throw new Error("Invalid response structure");
                         }
@@ -256,6 +253,7 @@
                 },
                 addMessage(content, type, model) {
                     this.messages.push({ id: Date.now(), content: marked.parse(content), type, model, rawContent: content });
+                    this.saveChatHistory();
                 },
                 updateLastMessage(content, model, isError = false) {
                     const index = this.messages.findIndex(message => message.content === 'Loading...' && message.model === model);
@@ -263,6 +261,7 @@
                         this.messages[index].content = isError ? `<span style="color: red;">${content}</span>` : marked.parse(content);
                         this.messages[index].rawContent = content;
                     }
+                    this.saveChatHistory();
                 },
                 copyToClipboard(content) {
                     navigator.clipboard.writeText(content).then(() => {
@@ -274,7 +273,10 @@
                 saveChatHistory() {
                     if (this.messages.length === 0) return;
                     const timestamp = new Date().toLocaleString();
-                    this.chatHistory[this.chatHistory.length - 1] = { id: this.chatHistory.length + 1, messages: [...this.messages], timestamp };
+                    const currentSession = this.chatHistory[this.chatHistory.length - 1] || { id: this.chatHistory.length + 1, messages: [], timestamp };
+                    currentSession.messages = [...this.messages];
+                    currentSession.timestamp = timestamp;
+                    this.chatHistory[this.chatHistory.length - 1] = currentSession;
                     localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
                 },
                 showHistory() {
@@ -283,11 +285,7 @@
                 },
                 getSessionSummary(session) {
                     const firstMessage = session.messages.find(msg => msg.type === 'user-bubble');
-                    const firstResponse = session.messages.find(msg => msg.type === 'ai-bubble');
-                    let summary = '';
-                    if (firstMessage) summary += `Q: ${firstMessage.rawContent.substring(0, 20)}... `;
-                    if (firstResponse) summary += `A: ${firstResponse.rawContent.substring(0, 20)}...`;
-                    return summary || 'No summary available';
+                    return firstMessage ? firstMessage.rawContent.substring(0, 20) + '...' : 'No summary available';
                 },
                 deleteSession(index) {
                     this.chatHistory.splice(index, 1);
@@ -320,6 +318,12 @@
                 window.addEventListener('beforeunload', () => {
                     this.saveChatHistory();
                 });
+                // Load the last chat session if any
+                if (this.chatHistory.length > 0) {
+                    this.messages = [...this.chatHistory[this.chatHistory.length - 1].messages];
+                } else {
+                    this.newChat();
+                }
             }
         }).mount('#app');
     </script>
