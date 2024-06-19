@@ -4,50 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi-AI Response App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui/dist/css/mdui.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/mdui/dist/js/mdui.min.js"></script>
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
         }
-
         #app {
             background-color: #fff;
-            width: 100%;
+            width: 90%;
             max-width: 1000px;
-            margin: 0 auto;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
         }
-
         .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
             background-color: #007bff;
             color: #fff;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-
-        .top-bar button {
-            background-color: #fff;
-            color: #007bff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .top-bar button:hover {
-            background-color: #e0e0e0;
-        }
-
         .responses {
             flex: 1;
             display: flex;
@@ -56,34 +44,44 @@
             overflow-y: auto;
             padding: 20px;
         }
-
-        .chat-message, .model-response {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
+        .bubble {
             position: relative;
-        }
-
-        .response {
-            white-space: pre-wrap;
-            margin-top: 10px;
-            max-height: 200px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 60%;
+            word-wrap: break-word;
+            overflow: hidden;
+            max-height: 8em; /* Limit to 5 lines */
             overflow-y: auto;
         }
-
-        .loading {
-            color: #888;
+        .user-bubble {
+            background-color: #cce5ff;
+            align-self: flex-end;
         }
-
+        .ai-bubble {
+            background-color: #e2e3e5;
+            align-self: flex-start;
+        }
+        .model-name {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #007bff;
+        }
         .input-container {
             display: flex;
-            align-items: center;
-            padding: 10px 20px;
+            width: 100%;
+            padding: 10px;
             border-top: 1px solid #ddd;
-            background-color: #fff;
         }
-
         input {
             flex: 1;
             padding: 10px;
@@ -91,7 +89,6 @@
             border-radius: 5px;
             outline: none;
         }
-
         button {
             padding: 10px;
             margin-left: 10px;
@@ -101,188 +98,74 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
         button:hover {
             background-color: #0056b3;
         }
-
-        .toggle-button {
-            background-color: #6c757d;
-            margin-right: 10px;
-        }
-
-        .toggle-button:hover {
-            background-color: #5a6268;
-        }
-
-        .model-select {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 10px;
-            display: none;
-            flex-direction: column;
-        }
-
-        .model-select.show {
-            display: flex;
-        }
-
-        .model-select button {
-            margin-top: 10px;
-            width: 100%;
-        }
-
-        .model-select .apply-button {
-            align-self: center;
-            width: 50%;
-        }
-
-        .model-select label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .copy-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            padding: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .copy-button:hover {
-            background-color: #0056b3;
-        }
-
         .history-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            width: 80%;
-            max-width: 600px;
-            max-height: 80%;
-            overflow-y: auto;
-            display: none;
-            flex-direction: column;
-            z-index: 1000;
         }
-
-        .history-modal.show {
-            display: flex;
-        }
-
-        .history-modal .modal-header {
+        .history-session {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
         }
-
-        .history-modal .modal-header button {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .history-modal .modal-header button:hover {
-            background-color: #0056b3;
-        }
-
-        .history-modal .chat-history {
+        .history-info {
             flex: 1;
-            overflow-y: auto;
         }
-
-        .history-modal .chat-history .history-entry {
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            cursor: pointer;
-        }
-
-        .history-modal .chat-history .history-entry:hover {
-            background-color: #e0e0e0;
-        }
-
-        .history-entry-buttons {
+        .history-actions {
             display: flex;
-            gap: 5px;
-            margin-top: 10px;
+            gap: 10px;
         }
     </style>
-    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body>
-    <div id="app">
+<body class="mdui-theme-primary-indigo mdui-theme-accent-pink">
+    <div id="app" class="mdui-container">
         <div class="top-bar">
-            <button @click="toggleHistoryModal">历史记录</button>
-            <button @click="newConversation">+</button>
-            <button @click="exportAllChatHistory">导出</button>
+            <button class="mdui-btn mdui-btn-icon" @click="showHistory">
+                <i class="mdui-icon material-icons">history</i>
+            </button>
+            <div>Multi-AI Response App</div>
         </div>
-        <div class="responses">
-            <div v-for="entry in chatHistory" :key="entry.id" class="chat-message">
-                <div v-if="entry.user" class="response">{{ entry.text }}</div>
-                <button class="copy-button" @click="copyText(entry.text)">Copy</button>
-                <div v-if="!entry.user" class="model-response">
-                    <h3>{{ entry.model }}</h3>
-                    <div class="response" v-html="entry.responseHtml"></div>
-                    <button class="copy-button" @click="copyText(entry.responseHtml)">Copy</button>
-                    <div class="response loading" v-if="entry.loading">Loading...</div>
-                    <div class="response error" v-if="entry.error">{{ entry.error }}</div>
+        <div class="responses mdui-typo">
+            <div v-for="message in messages" :key="message.id" class="model-response">
+                <div class="bubble" :class="message.type">
+                    <div v-if="message.type === 'ai-bubble'" class="model-name">{{ message.model }}</div>
+                    <div v-html="message.content"></div>
+                    <button class="copy-btn mdui-btn mdui-btn-icon" @click="copyToClipboard(message.rawContent)">
+                        <i class="mdui-icon material-icons">content_copy</i>
+                    </button>
                 </div>
             </div>
         </div>
-        <div class="input-container">
-            <button class="toggle-button" @click="toggleModelSelect">Models</button>
-            <input type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
-            <button @click="getResponses">Send</button>
-        </div>
-        <div class="model-select" :class="{ show: showModelSelect }">
-            <label v-for="model in models" :key="model.name">
-                <input type="checkbox" v-model="model.selected">
-                {{ model.name }}
-            </label>
-            <button class="apply-button" @click="updateSelectedModels">Apply</button>
+        <div class="input-container mdui-textfield mdui-textfield-floating-label">
+            <input class="mdui-textfield-input" type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
+            <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme" @click="getResponses">Send</button>
         </div>
 
-        <div class="history-modal" :class="{ show: showHistoryModal }">
-            <div class="modal-header">
-                <h3>历史记录</h3>
-                <button @click="toggleHistoryModal">Close</button>
-            </div>
-            <div class="chat-history">
-                <div v-for="(history, index) in chatHistoryList" :key="index" class="history-entry">
-                    <div @click="loadHistory(index)">
-                        <p>{{ history.timestamp }}</p>
-                        <p>{{ history.preview }}</p>
+        <!-- History Dialog -->
+        <div id="history-dialog" class="mdui-dialog history-modal">
+            <div class="mdui-dialog-title">Chat History</div>
+            <div class="mdui-dialog-content">
+                <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
+                    <div class="history-info">
+                        <h4>Session {{ index + 1 }}</h4>
+                        <p>{{ getSessionSummary(session) }}</p>
+                        <p><small>{{ session.timestamp }}</small></p>
                     </div>
-                    <div class="history-entry-buttons">
-                        <button @click="exportSingleChatHistory(index)">导出</button>
-                        <button @click="deleteChatHistory(index)">删除</button>
+                    <div class="history-actions">
+                        <button class="mdui-btn mdui-btn-icon" @click="deleteSession(index)">
+                            <i class="mdui-icon material-icons">delete</i>
+                        </button>
+                        <button class="mdui-btn mdui-btn-icon" @click="exportSession(session)">
+                            <i class="mdui-icon material-icons">save_alt</i>
+                        </button>
                     </div>
                 </div>
+            </div>
+            <div class="mdui-dialog-actions">
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>Close</button>
             </div>
         </div>
     </div>
@@ -292,227 +175,119 @@
             data() {
                 return {
                     question: '',
-                    chatHistory: [],
-                    showModelSelect: false,
-                    showHistoryModal: false,
-                    chatHistoryList: this.loadChatHistoryList(),
+                    messages: [],
+                    chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
                     models: [
-                        { name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                        { name: "🐕GLM4", url: "https://glmapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxNDk1ODYwNSwianRpIjoiMGE2OWY2OTktYmQxZS00MWJmLWE5YzQtNTU5NDA3MWQ2MmY3IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJkZGQ1MGUxMDAwYzk0OWNjYmY2ZDM3ZTNjNmViMTk1ZSIsIm5iZiI6MTcxNDk1ODYwNSwiZXhwIjoxNzMwNTEwNjA1LCJ1aWQiOiI2NjM4MzEwYzRkNTEwYmQ5ZWZhNGFiNGYiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.agFeK5NnkIdMwEZ5CYmZYxP4SMg2kF42IvsOnE4B778", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                        { name: "💪🏻Bing", url: "https://bing.xinu.ink/v1/chat/completions", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                        { name: "🧠META", url: "https://metaapi.xinu.ink/v1/chat/completions", key: "6616d1b3d0fd75295d361294-87117fd8c70d4cc6a450e60283101feb", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                        { name: "🐚神奇海螺", url: "https://abcapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTg0MTY2NTAsInVzZXIiOnsiaWQiOiIyNDMwNjkyMjcwMTkyMDI1NjIiLCJuYW1lIjoi5bCP6J665bi9MjU2MiIsImF2YXRhciI6Imh0dHBzOi8vY2RuLnlpbmdzaGktYWkuY29tL3Byb2QvdXNlcl9hdmF0YXIvMTcwNjI2NzcxMTI4Mjc3MDg3Mi0xNzMxOTQ1NzA2Njg5NjU4OTZvdmVyc2l6ZS5wbmciLCJkZXZpY2VJRCI6IjI0MzA2OTIyNDI5NzEwMzM2NSIsImlzQW5vbnltb3VzIjpmYWxzZX19.iYnKMi4zQ38F9TxPJvVkjCCgWaRnYNNQlpUhKnMfOQk", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                        { name: "Claude-3 Opus", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                        // Add other models here
+{ name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🐕GLM4", url: "https://glmapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxODY5OTU5MywianRpIjoiMjI3NzE1NjQtOWVhMi00YzZlLTgyY2UtZTEyZTEyNmQ3MmM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJiMzMxOTcyZWM3NTU0NmI0YjM2ZjVmMzNlMjM5NjMwNCIsIm5iZiI6MTcxODY5OTU5MywiZXhwIjoxNzM0MjUxNTkzLCJ1aWQiOiI2NjcxNDY0ODk1NWNiOGFlYzMwNDgxNTMiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.MouPoauYGPVahmM6QG6TjbyNTuPVhe35NDECjmwirUw", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🐣QWen", url: "https://qwenapi.xinu.ink/v1/chat/completions", key: "3LITHzOAbvZbFHT9J55YBCxYJ5CUsle4m*trtMUHEnF6AFvL_vshhJXJycrhAXcs0", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🧠META", url: "https://metaapi.xinu.ink/v1/chat/completions", key: "6616d1b3d0fd75295d361294-7c454da98a3c413da4c58065b03d928f", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🐚神奇海螺", url: "https://abcapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjIxNDg1ODMsInVzZXIiOnsiaWQiOiIyNDMwNjkyMjcwMTkyMDI1NjIiLCJuYW1lIjoi5bCP6J665bi9MjU2MiIsImF2YXRhciI6Imh0dHBzOi8vY2RuLnlpbmdzaGktYWkuY29tL3Byb2QvdXNlcl9hdmF0YXIvMTcwNjI2NzcxMTI4Mjc3MDg3Mi0xNzMxOTQ1NzA2Njg5NjU4OTZvdmVyc2l6ZS5wbmciLCJkZXZpY2VJRCI6IjI1OTM2MDcyNzA2MzY1NDQwMCIsImlzQW5vbnltb3VzIjpmYWxzZX19.jdBU4HHObgNFk5BLDFFq_394Y1LWU_4krabjfqFoqLw", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🤯DeepSeek", url: "https://deepapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzc29faWQiOiIwYzQwYjY0OS01ZWY2LTRiZDMtODY3OS1iNDM1MjJkYzA5MDUiLCJpc19vYXV0aCI6MSwib2F1dGhfcHJvdmlkZXIiOiJnb29nbGUiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiYWNjZXNzX3Rva2VuIjoieWEyOS5hMEFYb29DZ3ZFRVR1Tjl6VGdONDVsUTNzTm5UZVNCNlRDTHFRNXRjaUMycV9rT2FRb1NNVHpDak9GQUlVc2RPQV9ZOVBpdW8tOFc4TWhlNUIteEFnb0pjNHdvUkhyWFdUSmoyZnVnZC1rRm92N0plR1JXUlNHYTEyeG5JcnpYWTFUTDJNSWp0T1lFcTlza2lnTkJnSE1EdFVzY29fZW1fOGVXcDk3YUNnWUtBYXNTQVJBU0ZRSEdYMk1pdHZBaHpVZHhzZWN4S0g4Wl9fZ3BnQTAxNzEiLCJleHBpcmF0aW9uX2RhdGUiOjE3MTg3MDExMTcuMDg2MDYxNSwicmVmcmVzaF90b2tlbiI6IjEvLzBnNUtPRHR3QXc2cEdDZ1lJQVJBQUdCQVNOUUYtTDlJcm8tdDh2N3J1ZXVMcHFPdWxsNGJIdVlldlBJU3Ryck1nQ0JGUTQtTTBZZi1DemtyT3lweDdzemRTa09wYVNnVUUiLCJpZF9wcm9maWxlIjp7InByb3ZpZGVyIjoiR09PR0xFIiwiaWQiOiIxMTM4MDgzMjEwOTU5ODkwMzI2OTEiLCJuYW1lIjoiXHU1MjE4TUMiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSjN2Q0VlTng3RVJXeXB5ZWduYUhLcGVraF9nd1I4SjhJalJNRDZmalVzcXhDWERRPXM5Ni1jIiwibG9jYWxlIjoiZW5fVVMiLCJlbWFpbCI6Im15bGFuZDY2Njg4OEBnbWFpbC5jb20ifSwiZW1haWwiOiIiLCJtb2JpbGVfbnVtYmVyIjoiIiwiYXJlYV9jb2RlIjoiIiwibW9iaWxlIjoiIiwiZXhwIjoxNzE5MzMyOTcxLCJhdWQiOiI2NTI4YWQzOTZmYWExMzY3ZmVlNmQxNmMifQ.7YNiO23p3VIJqjNEUtmF-hKwiZBgdhPVixlzQSidi-E", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🐰Step", url: "https://stepapi.xinu.ink/v1/chat/completions", key: "a485a9480a2cbd767c77511c45e7fe4a44ee3a42@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY3RpdmF0ZWQiOnRydWUsImFnZSI6MiwiYmFuZWQiOmZhbHNlLCJjcmVhdGVfYXQiOjE3MTg2OTk3NzIsImV4cCI6MTcxODcwMTU3MiwibW9kZSI6Miwib2FzaXNfaWQiOjExNDI3MjM2ODA4NzU0NzkwNCwidmVyc2lvbiI6Mn0.FZjcvkWc1jvVfZtxdzJ5h-nGrbM_JWElBzJdshX13Z0...eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfaWQiOjEwMjAwLCJkZXZpY2VfaWQiOiJhNDg1YTk0ODBhMmNiZDc2N2M3NzUxMWM0NWU3ZmU0YTQ0ZWUzYTQyIiwiZXhwIjoxNzIxMjg5OTc0LCJvYXNpc19pZCI6MTE0MjcyMzY4MDg3NTQ3OTA0LCJwbGF0Zm9ybSI6IndlYiIsInZlcnNpb24iOjJ9.Z1FgSsc0ceatQY8-3vKHxaAY_4Shx0YA3qxNkeAdaho", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "✨Spark ", url: "https://sparkapi.xinu.ink/v1/chat/completions", key: "d0a840db-9ef1-4f45-872a-74f206bc46e2", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "😵‍💫Gemini", url: "https://geminiapi.xinu.ink/v1/chat/completions", key: "AIzaSyCXdsq9kMbGHEd8g4U3siuCki--gd-x4ZU", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "💪🏻Bing", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🎶Suno", url: "https://suno.gcui.ai/api/generate_lyrics", key: "__cf_bm=hzE33Wm.nVrdTPFMOQq2D6TeO2WA_8IS8nYSOqHLBN0-1718705572-1.0.1.1-OTOmu.0co1zrJ4hQZ1nE8igzzMMU24PWCnvHq8Q_RRHvEz2V7qQCw8vfFFLgaYI_NGEB4bJfUPeRV0WyCSp26w; _cfuvid=ieZMAfqwJPHyRdogrfwLFvAWnJaTymTOzbzXrDARZ78-1718705572477-0.0.1.1-604800000; __client=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNsaWVudF8yaTMzcXFzNGpXcVF1bzFibkhmTVV1TG9aRnQiLCJyb3RhdGluZ190b2tlbiI6Ijl6NHFjMzVhY2l3YWJrcHZycTVvd3FzM21mcnI0bWl3M2g2Y2NyNTkifQ.jHl4n20hT2tQCE9vaG9NLW48Rrj1oNMDhy1nbz3UfB4NFe5K5HgyxbxOEHk_e6tM6GCypAdn1NOcZkqCvCmHybfyNhBENj6Dcp89olz_9X0hNM4jtI0JhsD2nYUynQGs0WIiDXArhMtE_nj21vXlMBBeLdiyTFhmHwdgVyfVAaW7sqVigSGHuYsxUqKtsyXY4FJCyy9sw_KjhY3rHLmfI2VWc-Qj-YQSNRNoCJzRyqLrLgfIIhhoPp5lR1Zle-kP-O7ODIIZtDJwIShiDxBiGxOesSfwfSpKZnMn3ZNWaFhbNV2-1YwhpBKlmg5TZEPfXJ_eB2QLi9LKQh3P7xwfqg; __client_uat=1718705635; mp_26ced217328f4737497bd6ba6641ca1c_mixpanel=%7B%22distinct_id%22%3A%20%2255e24226-cba4-4b2c-99fb-fefd0956cab0%22%2C%22%24device_id%22%3A%20%221902ad5c5acc49-0b77a7c73a1bb7-1a525637-13c680-1902ad5c5acc49%22%2C%22%24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%2C%22__mps%22%3A%20%7B%7D%2C%22__mpso%22%3A%20%7B%22%24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%7D%2C%22__mpus%22%3A%20%7B%7D%2C%22__mpa%22%3A%20%7B%7D%2C%22__mpu%22%3A%20%7B%7D%2C%22__mpr%22%3A%20%5B%5D%2C%22__mpap%22%3A%20%5B%5D%2C%22%24user_id%22%3A%20%2255e24226-cba4-4b2c-99fb-fefd0956cab0%22%7D", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        
                     ],
-                    selectedModels: []
                 };
             },
-            methods: {
-                toggleModelSelect() {
-                    this.showModelSelect = !this.showModelSelect;
-                },
-                updateSelectedModels() {
-                    this.selectedModels = this.models.filter(model => model.selected);
-                    this.showModelSelect = false;
-                    this.saveSelectedModels();
-                },
-                saveSelectedModels() {
-                    localStorage.setItem('selectedModels', JSON.stringify(this.selectedModels.map(model => model.name)));
-                },
-                loadSelectedModels() {
-                    const savedModels = JSON.parse(localStorage.getItem('selectedModels'));
-                    if (savedModels) {
-                        this.models.forEach(model => {
-                            model.selected = savedModels.includes(model.name);
-                        });
-                        this.updateSelectedModels();
-                    }
-                },
-                async getResponses() {
-                    const question = this.question.trim();
-                    if (!question) return;
-
-                    const userEntry = { id: Date.now(), text: question, user: true };
-                    this.chatHistory.push(userEntry);
-                    this.saveChatHistory(); // Automatically save chat history when a question is asked
-                    this.question = '';
-
-                    this.selectedModels.forEach(model => {
-                        const entry = { id: Date.now() + Math.random(), model: model.name, loading: true, responseHtml: '' };
-                        this.chatHistory.push(entry);
-                        this.fetchResponse(model, question, entry);
-                    });
-                },
-                async fetchResponse(model, question, entry) {
-                    try {
-                        const response = await fetch(model.url, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${model.key}`
-                            },
-                            body: JSON.stringify({
-                                model: 'kimi',
-                                messages: [
-                                    {
-                                        role: 'user',
-                                        content: question
-                                    }
-                                ],
-                                use_search: false,
-                                stream: false
-                            })
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-
-                        const data = await response.json();
-                        
-                        if (data.choices && data.choices.length > 0) {
-                            entry.responseHtml = marked.parse(data.choices[0].message.content);
-                        } else {
-                            throw new Error("Invalid response structure");
-                        }
-
-                        entry.loading = false;
-                    } catch (error) {
-                        entry.error = 'Error fetching response: ' + error.message;
-                        entry.loading = false;
-                    }
-                },
-                copyText(text) {
-                    const textArea = document.createElement('textarea');
-                    textArea.value = text;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                },
-                toggleHistoryModal() {
-                    this.showHistoryModal = !this.showHistoryModal;
-                },
-                loadChatHistoryList() {
-                    const historyList = JSON.parse(localStorage.getItem('chatHistoryList')) || [];
-                    return historyList.map(history => ({
-                        timestamp: history.timestamp,
-                        preview: history.chatHistory.length > 0 ? history.chatHistory[0].text : ''
-                    }));
-                },
-                saveChatHistory() {
-    const chatHistoryList = JSON.parse(localStorage.getItem('chatHistoryList')) || [];
-    // 检查聊天记录是否至少包含一条用户或机器人的有效消息
-    const hasValidEntry = this.chatHistory.some(entry => {
-        return (entry.user && entry.text.trim() !== '') || (!entry.user && entry.responseHtml);
-    });
-    if (hasValidEntry) {
-        chatHistoryList.push({
-            timestamp: new Date().toLocaleString(),
-            chatHistory: this.chatHistory
-        });
-        localStorage.setItem('chatHistoryList', JSON.stringify(chatHistoryList));
-        this.chatHistoryList = this.loadChatHistoryList();
-    }
-},
-        localStorage.setItem('chatHistoryList', JSON.stringify(chatHistoryList));
-        this.chatHistoryList = this.loadChatHistoryList();
-    }
-},
-                    chatHistoryList.push({
-                        timestamp: new Date().toLocaleString(),
-                        chatHistory: this.chatHistory
-                    });
-                    localStorage.setItem('chatHistoryList', JSON.stringify(chatHistoryList));
-                    this.chatHistoryList = this.loadChatHistoryList();
-                },
-                loadHistory(index) {
-                    const chatHistoryList = JSON.parse(localStorage.getItem('chatHistoryList'));
-                    this.chatHistory = chatHistoryList[index].chatHistory;
-                    this.toggleHistoryModal();
-                },
-                newConversation() {
-                    if (this.chatHistory.length === 0 || (this.chatHistory.length === 1 && !this.chatHistory[0].text.trim())) {
-                        alert('不能新建一个空白的聊天记录！');
-                        return; // Prevent creating a new conversation if the current one is empty or contains only one empty entry
-                    }
-                    this.saveChatHistory();
-                    this.chatHistory = [];
-                },
-                exportChatHistory() {
-                    let text = '';
-                    this.chatHistory.forEach(entry => {
-                        if (entry.user) {
-                            text += `User: ${entry.text}\n`;
-                        } else {
-                            text += `Model (${entry.model}): ${entry.responseHtml.replace(/<[^>]+>/g, '')}\n`;
-                        }
-                    });
-                    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'chat_history.txt';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                },
-                exportAllChatHistory() {
-                    const historyList = JSON.parse(localStorage.getItem('chatHistoryList')) || [];
-                    let text = '';
-                    historyList.forEach(history => {
-                        history.chatHistory.forEach(entry => {
-                            if (entry.user) {
-                                text += `User: ${entry.text}\n`;
-                            } else {
-                                text += `Model (${entry.model}): ${entry.responseHtml.replace(/<[^>]+>/g, '')}\n`;
-                            }
-                        });
-                        text += '\n';
-                    });
-                    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'all_chat_history.txt';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                },
-                exportSingleChatHistory(index) {
-                    const chatHistoryList = JSON.parse(localStorage.getItem('chatHistoryList'));
-                    const chatHistory = chatHistoryList[index].chatHistory;
-                    let text = '';
-                    chatHistory.forEach(entry => {
-                        if (entry.user) {
-                            text += `User: ${entry.text}\n`;
-                        } else {
-                            text += `Model (${entry.model}): ${entry.responseHtml.replace(/<[^>]+>/g, '')}\n`;
-                        }
-                    });
-                    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `chat_history_${index}.txt`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                },
-                deleteChatHistory(index) {
-                    let chatHistoryList = JSON.parse(localStorage.getItem('chatHistoryList'));
-                    chatHistoryList.splice(index, 1);
-                    localStorage.setItem('chatHistoryList', JSON.stringify(chatHistoryList));
-                    this.chatHistoryList = this.loadChatHistoryList();
-                }
-            },
             mounted() {
-                this.loadSelectedModels();
-            }
+                this.initChat();
+            },
+            methods: {
+                initChat() {
+                    this.messages = [];
+                    this.scrollToBottom();
+                },
+                getResponses() {
+                    if (!this.question.trim()) return;
+
+                    const userMessage = {
+                        id: Date.now(),
+                        content: this.question,
+                        rawContent: this.question,
+                        type: 'user-bubble',
+                    };
+                    this.messages.push(userMessage);
+                    this.scrollToBottom();
+                    this.saveCurrentChat();
+
+                    this.models.forEach(model => {
+                        if (model.selected) {
+                            model.loading = true;
+                            fetch(model.url, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${model.key}`,
+                                },
+                                body: JSON.stringify({
+                                    messages: [{ role: 'user', content: this.question }],
+                                    stream: false,
+                                }),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                model.loading = false;
+                                const aiResponse = {
+                                    id: Date.now() + Math.random(),
+                                    content: marked.parse(data.choices[0].message.content),
+                                    rawContent: data.choices[0].message.content,
+                                    type: 'ai-bubble',
+                                    model: model.name,
+                                };
+                                this.messages.push(aiResponse);
+                                this.scrollToBottom();
+                                this.saveCurrentChat();
+                            })
+                            .catch(error => {
+                                model.loading = false;
+                                model.error = error.message;
+                                console.error('Error:', error);
+                            });
+                        }
+                    });
+
+                    this.question = '';
+                },
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const container = this.$el.querySelector('.responses');
+                        container.scrollTop = container.scrollHeight;
+                    });
+                },
+                saveCurrentChat() {
+                    localStorage.setItem('currentChat', JSON.stringify(this.messages));
+                },
+                showHistory() {
+                    const historyDialog = new mdui.Dialog('#history-dialog');
+                    historyDialog.open();
+                },
+                getSessionSummary(session) {
+                    return session.messages.map(msg => msg.rawContent).join(' ');
+                },
+                deleteSession(index) {
+                    this.chatHistory.splice(index, 1);
+                    localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+                },
+                exportSession(session) {
+                    const blob = new Blob([JSON.stringify(session)], { type: 'application/json' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `session_${session.id}.json`;
+                    link.click();
+                },
+                copyToClipboard(content) {
+                    navigator.clipboard.writeText(content).then(() => {
+                        mdui.snackbar({
+                            message: 'Copied to clipboard',
+                            position: 'right-top',
+                        });
+                    });
+                },
+            },
         }).mount('#app');
     </script>
 </body>
