@@ -27,6 +27,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            height: 100vh;
         }
         .top-bar {
             background-color: #007bff;
@@ -35,6 +36,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            position: fixed;
+            top: 0;
+            width: 90%;
+            max-width: 1000px;
+            z-index: 1000;
         }
         .responses {
             flex: 1;
@@ -42,7 +48,8 @@
             flex-direction: column;
             gap: 10px;
             overflow-y: auto;
-            padding: 20px;
+            padding: 70px 20px 80px 20px;
+            box-sizing: border-box;
         }
         .bubble {
             position: relative;
@@ -81,6 +88,11 @@
             width: 100%;
             padding: 10px;
             border-top: 1px solid #ddd;
+            position: fixed;
+            bottom: 0;
+            background-color: #fff;
+            box-sizing: border-box;
+            z-index: 1000;
         }
         input {
             flex: 1;
