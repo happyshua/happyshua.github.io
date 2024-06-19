@@ -11,15 +11,16 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background-color: var(--background-color);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            color: var(--text-color);
         }
         #app {
-            background-color: #fff;
+            background-color: var(--app-background-color);
             width: 90%;
             max-width: 1000px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -38,9 +39,15 @@
             justify-content: space-between;
             position: fixed;
             top: 0;
-            width: 90%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
             max-width: 1000px;
             z-index: 1000;
+            box-sizing: border-box;
+        }
+        .top-bar .mdui-btn-icon {
+            margin-right: 10px;
         }
         .responses {
             flex: 1;
@@ -55,23 +62,23 @@
             position: relative;
             padding: 10px;
             border-radius: 10px;
-            max-width: 60%;
+            max-width: 80%;
             word-wrap: break-word;
             overflow: hidden;
-            max-height: 8em; /* Limit to 5 lines */
+            max-height: 8em;
             overflow-y: auto;
         }
         .user-bubble {
-            background-color: #cce5ff;
+            background-color: var(--user-bubble-bg);
             align-self: flex-end;
         }
         .ai-bubble {
-            background-color: #e2e3e5;
+            background-color: var(--ai-bubble-bg);
             align-self: flex-start;
         }
         .model-name {
             font-size: 0.8em;
-            color: #888;
+            color: var(--model-name-color);
             margin-bottom: 5px;
         }
         .copy-btn {
@@ -85,39 +92,59 @@
         }
         .input-container {
             display: flex;
+            justify-content: center;
+            align-items: center;
             width: 100%;
             padding: 10px;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid var(--border-color);
             position: fixed;
             bottom: 0;
-            background-color: #fff;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--app-background-color);
             box-sizing: border-box;
-            z-index: 1000;
+            gap: 10px;
         }
-        input {
-            flex: 1;
+        .input-container button {
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            outline: none;
-        }
-        button {
-            padding: 10px;
-            margin-left: 10px;
             background-color: #007bff;
             border: none;
             color: #fff;
             border-radius: 5px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        button:hover {
+        .input-container button:hover {
             background-color: #0056b3;
+        }
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            outline: none;
+            max-width: 600px;
+            color: var(--text-color);
+            background-color: var(--input-background-color);
+        }
+        .input-container .icon-button {
+            padding: 0 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
         }
         .history-modal {
             padding: 20px;
         }
         .history-session {
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border-color);
             padding: 10px 0;
             display: flex;
             justify-content: space-between;
@@ -130,15 +157,52 @@
             display: flex;
             gap: 10px;
         }
+        .model-selection-modal {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 10px;
+        }
+        .model-selection-modal .model-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .model-selection-modal .model-item .mdui-checkbox {
+            margin-right: 10px;
+        }
+        .dark-mode {
+            --background-color: #121212;
+            --text-color: #ffffff;
+            --app-background-color: #1e1e1e;
+            --input-background-color: #2e2e2e;
+            --border-color: #333;
+            --user-bubble-bg: #2e3b4e;
+            --ai-bubble-bg: #3a3a3a;
+            --model-name-color: #bbb;
+        }
+        .light-mode {
+            --background-color: #f0f0f0;
+            --text-color: #000000;
+            --app-background-color: #ffffff;
+            --input-background-color: #ffffff;
+            --border-color: #ddd;
+            --user-bubble-bg: #cce5ff;
+            --ai-bubble-bg: #e2e3e5;
+            --model-name-color: #888;
+        }
     </style>
 </head>
-<body class="mdui-theme-primary-indigo mdui-theme-accent-pink">
+<body class="mdui-theme-primary-indigo mdui-theme-accent-pink" :class="darkMode ? 'dark-mode' : 'light-mode'">
     <div id="app" class="mdui-container">
         <div class="top-bar">
             <button class="mdui-btn mdui-btn-icon" @click="showHistory">
                 <i class="mdui-icon material-icons">history</i>
             </button>
             <div>Multi-AI Response App</div>
+            <button class="mdui-btn mdui-btn-icon" @click="toggleDarkMode">
+                <i class="mdui-icon material-icons">{{ darkMode ? 'brightness_7' : 'brightness_2' }}</i>
+            </button>
         </div>
         <div class="responses mdui-typo">
             <div v-for="message in messages" :key="message.id" class="model-response">
@@ -152,27 +216,42 @@
             </div>
         </div>
         <div class="input-container mdui-textfield mdui-textfield-floating-label">
+            <button class="mdui-btn mdui-btn-icon icon-button" @click="showModelSelection">
+                🤖
+            </button>
             <input class="mdui-textfield-input" type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
             <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme" @click="getResponses">Send</button>
+        </div>
+
+        <!-- Model Selection Dialog -->
+        <div id="model-selection-dialog" class="mdui-dialog model-selection-modal">
+            <div class="mdui-dialog-title">Select Models</div>
+            <div class="mdui-dialog-content">
+                <div v-for="model in models" :key="model.name" class="model-item">
+                    <label class="mdui-checkbox">
+                        <input type="checkbox" v-model="model.selected"/>
+                        <i class="mdui-checkbox-icon"></i>
+                        {{ model.name }}
+                    </label>
+                </div>
+            </div>
+            <div class="mdui-dialog-actions">
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>Close</button>
+            </div>
         </div>
 
         <!-- History Dialog -->
         <div id="history-dialog" class="mdui-dialog history-modal">
             <div class="mdui-dialog-title">Chat History</div>
             <div class="mdui-dialog-content">
+                <div v-if="!chatHistory.length">No chat history available.</div>
                 <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
                     <div class="history-info">
-                        <h4>Session {{ index + 1 }}</h4>
-                        <p>{{ getSessionSummary(session) }}</p>
-                        <p><small>{{ session.timestamp }}</small></p>
+                        <p>{{ new Date(session.id).toLocaleString() }}</p>
                     </div>
                     <div class="history-actions">
-                        <button class="mdui-btn mdui-btn-icon" @click="deleteSession(index)">
-                            <i class="mdui-icon material-icons">delete</i>
-                        </button>
-                        <button class="mdui-btn mdui-btn-icon" @click="exportSession(session)">
-                            <i class="mdui-icon material-icons">save_alt</i>
-                        </button>
+                        <button class="mdui-btn mdui-ripple" @click="deleteSession(index)">Delete</button>
+                        <button class="mdui-btn mdui-ripple" @click="exportSession(session)">Export</button>
                     </div>
                 </div>
             </div>
@@ -181,14 +260,14 @@
             </div>
         </div>
     </div>
+
     <script>
-        const { createApp } = Vue;
-        createApp({
+        Vue.createApp({
             data() {
                 return {
                     question: '',
-                    messages: [],
-                    chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
+                    messages: JSON.parse(localStorage.getItem('currentChat')) || [],
+                    darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
                     models: [
 { name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🐕GLM4", url: "https://glmapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxODY5OTU5MywianRpIjoiMjI3NzE1NjQtOWVhMi00YzZlLTgyY2UtZTEyZTEyNmQ3MmM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJiMzMxOTcyZWM3NTU0NmI0YjM2ZjVmMzNlMjM5NjMwNCIsIm5iZiI6MTcxODY5OTU5MywiZXhwIjoxNzM0MjUxNTkzLCJ1aWQiOiI2NjcxNDY0ODk1NWNiOGFlYzMwNDgxNTMiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.MouPoauYGPVahmM6QG6TjbyNTuPVhe35NDECjmwirUw", response: '', responseHtml: '', loading: false, error: null, selected: true },
@@ -201,12 +280,14 @@
                         { name: "😵‍💫Gemini", url: "https://geminiapi.xinu.ink/v1/chat/completions", key: "AIzaSyCXdsq9kMbGHEd8g4U3siuCki--gd-x4ZU", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "💪🏻Bing", url: "YOUR_CLAUDE3_API_URL", key: "YOUR_CLAUDE3_API_KEY", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🎶Suno", url: "https://suno.gcui.ai/api/generate_lyrics", key: "__cf_bm=hzE33Wm.nVrdTPFMOQq2D6TeO2WA_8IS8nYSOqHLBN0-1718705572-1.0.1.1-OTOmu.0co1zrJ4hQZ1nE8igzzMMU24PWCnvHq8Q_RRHvEz2V7qQCw8vfFFLgaYI_NGEB4bJfUPeRV0WyCSp26w; _cfuvid=ieZMAfqwJPHyRdogrfwLFvAWnJaTymTOzbzXrDARZ78-1718705572477-0.0.1.1-604800000; __client=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNsaWVudF8yaTMzcXFzNGpXcVF1bzFibkhmTVV1TG9aRnQiLCJyb3RhdGluZ190b2tlbiI6Ijl6NHFjMzVhY2l3YWJrcHZycTVvd3FzM21mcnI0bWl3M2g2Y2NyNTkifQ.jHl4n20hT2tQCE9vaG9NLW48Rrj1oNMDhy1nbz3UfB4NFe5K5HgyxbxOEHk_e6tM6GCypAdn1NOcZkqCvCmHybfyNhBENj6Dcp89olz_9X0hNM4jtI0JhsD2nYUynQGs0WIiDXArhMtE_nj21vXlMBBeLdiyTFhmHwdgVyfVAaW7sqVigSGHuYsxUqKtsyXY4FJCyy9sw_KjhY3rHLmfI2VWc-Qj-YQSNRNoCJzRyqLrLgfIIhhoPp5lR1Zle-kP-O7ODIIZtDJwIShiDxBiGxOesSfwfSpKZnMn3ZNWaFhbNV2-1YwhpBKlmg5TZEPfXJ_eB2QLi9LKQh3P7xwfqg; __client_uat=1718705635; mp_26ced217328f4737497bd6ba6641ca1c_mixpanel=%7B%22distinct_id%22%3A%20%2255e24226-cba4-4b2c-99fb-fefd0956cab0%22%2C%22%24device_id%22%3A%20%221902ad5c5acc49-0b77a7c73a1bb7-1a525637-13c680-1902ad5c5acc49%22%2C%22%24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%2C%22__mps%22%3A%20%7B%7D%2C%22__mpso%22%3A%20%7B%22%24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%7D%2C%22__mpus%22%3A%20%7B%7D%2C%22__mpa%22%3A%20%7B%7D%2C%22__mpu%22%3A%20%7B%7D%2C%22__mpr%22%3A%20%5B%5D%2C%22__mpap%22%3A%20%5B%5D%2C%22%24user_id%22%3A%20%2255e24226-cba4-4b2c-99fb-fefd0956cab0%22%7D", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                        
+ 
                     ],
+                    chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
                 };
             },
             mounted() {
                 this.initChat();
+                this.applyDarkMode();
             },
             methods: {
                 initChat() {
@@ -299,6 +380,18 @@
                         });
                     });
                 },
+                showModelSelection() {
+                    const modelSelectionDialog = new mdui.Dialog('#model-selection-dialog');
+                    modelSelectionDialog.open();
+                },
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                    this.applyDarkMode();
+                },
+                applyDarkMode() {
+                    document.body.classList.toggle('dark-mode', this.darkMode);
+                    document.body.classList.toggle('light-mode', !this.darkMode);
+                }
             },
         }).mount('#app');
     </script>
