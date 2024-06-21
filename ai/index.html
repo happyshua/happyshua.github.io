@@ -228,12 +228,12 @@
                 🤖
             </button>
             <input class="mdui-textfield-input" type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
-            <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme" @click="getResponses">Send</button>
+            <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme" @click="getResponses">发送✈️</button>
         </div>
 
         <!-- Model Selection Dialog -->
         <div id="model-selection-dialog" class="mdui-dialog model-selection-modal">
-            <div class="mdui-dialog-title">Select Models</div>
+            <div class="mdui-dialog-title">选择你喜爱的模型！</div>
             <div class="mdui-dialog-content">
                 <div v-for="model in models" :key="model.name" class="model-item">
                     <label class="mdui-checkbox">
@@ -244,7 +244,7 @@
                 </div>
             </div>
             <div class="mdui-dialog-actions">
-                <button class="mdui-btn mdui-ripple" mdui-dialog-close>Close</button>
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
             </div>
         </div>
 
