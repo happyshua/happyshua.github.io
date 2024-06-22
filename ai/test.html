@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        /* 样式保持不变 */
         body {
             font-family: Arial, sans-serif;
             background-color: var(--background-color);
@@ -334,6 +335,7 @@
                         }
                     });
 
+                    this.saveChatHistory();
                     this.question = '';
                 },
                 scrollToBottom() {
@@ -344,6 +346,14 @@
                 },
                 saveCurrentChat() {
                     localStorage.setItem('currentChat', JSON.stringify(this.messages));
+                },
+                saveChatHistory() {
+                    const session = {
+                        id: Date.now(),
+                        messages: this.messages,
+                    };
+                    this.chatHistory.push(session);
+                    localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
                 },
                 showHistory() {
                     const historyDialog = new mdui.Dialog('#history-dialog');
