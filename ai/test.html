@@ -248,12 +248,13 @@
             <div class="mdui-dialog-content">
                 <div v-if="!chatHistory.length">No chat history available.</div>
                 <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
-                    <div class="history-info">
-                        <p>{{ new Date(session.id).toLocaleString() }}</p>
+                    <div class="history-info" @click="loadSession(session)">
+                        <p>{{ new Date(session.lastUpdated).toLocaleString() }}</p>
+                        <p>{{ session.title }}</p>
                     </div>
                     <div class="history-actions">
-                        <button class="mdui-btn mdui-ripple" @click="deleteSession(index)">Delete</button>
-                        <button class="mdui-btn mdui-ripple" @click="exportSession(session)">Export</button>
+                        <button class="mdui-btn mdui-ripple" @click.stop="deleteSession(index)">Delete</button>
+                        <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">Export</button>
                     </div>
                 </div>
             </div>
@@ -349,10 +350,19 @@
                 },
                 saveChatHistory() {
                     const session = {
-                        id: Date.now(),
+                        id: this.messages[0]?.id || Date.now(),
+                        lastUpdated: Date.now(),
+                        title: this.messages[0]?.rawContent || 'Untitled',
                         messages: this.messages,
                     };
-                    this.chatHistory.push(session);
+
+                    const existingSessionIndex = this.chatHistory.findIndex(s => s.id === session.id);
+                    if (existingSessionIndex !== -1) {
+                        this.chatHistory.splice(existingSessionIndex, 1, session);
+                    } else {
+                        this.chatHistory.push(session);
+                    }
+
                     localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
                 },
                 showHistory() {
@@ -372,6 +382,14 @@
                     link.href = URL.createObjectURL(blob);
                     link.download = `session_${session.id}.json`;
                     link.click();
+                },
+                loadSession(session) {
+                    this.messages = session.messages;
+                    this.saveCurrentChat();
+                    mdui.snackbar({
+                        message: 'Chat loaded',
+                        position: 'right-top',
+                    });
                 },
                 copyToClipboard(content) {
                     navigator.clipboard.writeText(content).then(() => {
