@@ -327,6 +327,7 @@
                                 this.messages.push(aiResponse);
                                 this.scrollToBottom();
                                 this.saveCurrentChat();
+                                this.saveChatHistory();
                             })
                             .catch(error => {
                                 model.loading = false;
@@ -336,7 +337,6 @@
                         }
                     });
 
-                    this.saveChatHistory();
                     this.question = '';
                 },
                 scrollToBottom() {
@@ -349,6 +349,8 @@
                     localStorage.setItem('currentChat', JSON.stringify(this.messages));
                 },
                 saveChatHistory() {
+                    if (!this.messages.length) return;
+
                     const session = {
                         id: this.messages[0]?.id || Date.now(),
                         lastUpdated: Date.now(),
@@ -368,9 +370,6 @@
                 showHistory() {
                     const historyDialog = new mdui.Dialog('#history-dialog');
                     historyDialog.open();
-                },
-                getSessionSummary(session) {
-                    return session.messages.map(msg => msg.rawContent).join(' ');
                 },
                 deleteSession(index) {
                     this.chatHistory.splice(index, 1);
