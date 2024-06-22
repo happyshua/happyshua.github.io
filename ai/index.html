@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="application-name" content="LLMS">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="application-name" content="LLMs">
     <!-- 自定义应用图标可用 -->
     <link rel="apple-touch-icon-precomposed" sizes="240x240" href="https://lab.xinu.ink/ai/logo.jpg">
     <!-- 全屏设置 -->
@@ -16,6 +17,7 @@
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        /* 样式保持不变 */
         body {
             font-family: Arial, sans-serif;
             background-color: var(--background-color);
@@ -204,9 +206,14 @@
 <body class="mdui-theme-primary-indigo mdui-theme-accent-pink" :class="darkMode ? 'dark-mode' : 'light-mode'">
     <div id="app" class="mdui-container">
         <div class="top-bar">
-            <button class="mdui-btn mdui-btn-icon" @click="showHistory">
-                <i class="mdui-icon material-icons">history</i>
-            </button>
+            <div>
+                <button class="mdui-btn mdui-btn-icon" @click="showHistory">
+                    <i class="mdui-icon material-icons">history</i>
+                </button>
+                <button class="mdui-btn mdui-btn-icon" @click="refreshPage">
+                    <i class="mdui-icon material-icons">add</i>
+                </button>
+            </div>
             <div>Multi-AI Response App</div>
             <button class="mdui-btn mdui-btn-icon" @click="toggleDarkMode">
                 <i class="mdui-icon material-icons">{{ darkMode ? 'brightness_7' : 'brightness_2' }}</i>
@@ -244,22 +251,23 @@
                 </div>
             </div>
             <div class="mdui-dialog-actions">
-                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭</button>
             </div>
         </div>
 
-        <!-- History Dialog -->
+        <!-- Chat History Dialog -->
         <div id="history-dialog" class="mdui-dialog history-modal">
             <div class="mdui-dialog-title">Chat History</div>
             <div class="mdui-dialog-content">
                 <div v-if="!chatHistory.length">No chat history available.</div>
                 <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
-                    <div class="history-info">
-                        <p>{{ new Date(session.id).toLocaleString() }}</p>
+                    <div class="history-info" @click="loadSession(session)">
+                        <p>{{ new Date(session.lastUpdated).toLocaleString() }}</p>
+                        <p>{{ session.title }}</p>
                     </div>
                     <div class="history-actions">
-                        <button class="mdui-btn mdui-ripple" @click="deleteSession(index)">Delete</button>
-                        <button class="mdui-btn mdui-ripple" @click="exportSession(session)">Export</button>
+                        <button class="mdui-btn mdui-ripple" @click.stop="deleteSession(index)">Delete</button>
+                        <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">Export</button>
                     </div>
                 </div>
             </div>
@@ -356,6 +364,7 @@
                         }
                     });
 
+                    this.saveChatHistory();
                     this.question = '';
                 },
                 scrollToBottom() {
@@ -366,6 +375,23 @@
                 },
                 saveCurrentChat() {
                     localStorage.setItem('currentChat', JSON.stringify(this.messages));
+                },
+                saveChatHistory() {
+                    const session = {
+                        id: this.messages[0]?.id || Date.now(),
+                        lastUpdated: Date.now(),
+                        title: this.messages[0]?.rawContent || 'Untitled',
+                        messages: this.messages,
+                    };
+
+                    const existingSessionIndex = this.chatHistory.findIndex(s => s.id === session.id);
+                    if (existingSessionIndex !== -1) {
+                        this.chatHistory.splice(existingSessionIndex, 1, session);
+                    } else {
+                        this.chatHistory.push(session);
+                    }
+
+                    localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
                 },
                 showHistory() {
                     const historyDialog = new mdui.Dialog('#history-dialog');
@@ -384,6 +410,14 @@
                     link.href = URL.createObjectURL(blob);
                     link.download = `session_${session.id}.json`;
                     link.click();
+                },
+                loadSession(session) {
+                    this.messages = session.messages;
+                    this.saveCurrentChat();
+                    mdui.snackbar({
+                        message: 'Chat loaded',
+                        position: 'right-top',
+                    });
                 },
                 copyToClipboard(content) {
                     navigator.clipboard.writeText(content).then(() => {
@@ -404,6 +438,9 @@
                 applyDarkMode() {
                     document.body.classList.toggle('dark-mode', this.darkMode);
                     document.body.classList.toggle('light-mode', !this.darkMode);
+                },
+                refreshPage() {
+                    location.reload();
                 }
             },
         }).mount('#app');
