@@ -198,9 +198,14 @@
 <body class="mdui-theme-primary-indigo mdui-theme-accent-pink" :class="darkMode ? 'dark-mode' : 'light-mode'">
     <div id="app" class="mdui-container">
         <div class="top-bar">
-            <button class="mdui-btn mdui-btn-icon" @click="showHistory">
-                <i class="mdui-icon material-icons">history</i>
-            </button>
+            <div>
+                <button class="mdui-btn mdui-btn-icon" @click="showHistory">
+                    <i class="mdui-icon material-icons">history</i>
+                </button>
+                <button class="mdui-btn mdui-btn-icon" @click="refreshPage">
+                    <i class="mdui-icon material-icons">add</i>
+                </button>
+            </div>
             <div>Multi-AI Response App</div>
             <button class="mdui-btn mdui-btn-icon" @click="toggleDarkMode">
                 <i class="mdui-icon material-icons">{{ darkMode ? 'brightness_7' : 'brightness_2' }}</i>
@@ -238,11 +243,11 @@
                 </div>
             </div>
             <div class="mdui-dialog-actions">
-                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭</button>
             </div>
         </div>
 
-        <!-- History Dialog -->
+        <!-- Chat History Dialog -->
         <div id="history-dialog" class="mdui-dialog history-modal">
             <div class="mdui-dialog-title">Chat History</div>
             <div class="mdui-dialog-content">
@@ -327,7 +332,6 @@
                                 this.messages.push(aiResponse);
                                 this.scrollToBottom();
                                 this.saveCurrentChat();
-                                this.saveChatHistory();
                             })
                             .catch(error => {
                                 model.loading = false;
@@ -337,6 +341,7 @@
                         }
                     });
 
+                    this.saveChatHistory();
                     this.question = '';
                 },
                 scrollToBottom() {
@@ -349,8 +354,6 @@
                     localStorage.setItem('currentChat', JSON.stringify(this.messages));
                 },
                 saveChatHistory() {
-                    if (!this.messages.length) return;
-
                     const session = {
                         id: this.messages[0]?.id || Date.now(),
                         lastUpdated: Date.now(),
@@ -370,6 +373,9 @@
                 showHistory() {
                     const historyDialog = new mdui.Dialog('#history-dialog');
                     historyDialog.open();
+                },
+                getSessionSummary(session) {
+                    return session.messages.map(msg => msg.rawContent).join(' ');
                 },
                 deleteSession(index) {
                     this.chatHistory.splice(index, 1);
@@ -409,6 +415,9 @@
                 applyDarkMode() {
                     document.body.classList.toggle('dark-mode', this.darkMode);
                     document.body.classList.toggle('light-mode', !this.darkMode);
+                },
+                refreshPage() {
+                    location.reload();
                 }
             },
         }).mount('#app');
