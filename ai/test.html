@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLMs</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui/dist/css/mdui.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/mdui/dist/js/mdui.min.js"></script>
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--text-color);
+        }
+        #app {
+            background-color: var(--app-background-color);
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .top-bar {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 1000px;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+        .top-bar .mdui-btn-icon {
+            margin-right: 10px;
+        }
+        .responses {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            padding: 70px 20px 80px 20px;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+        .bubble {
+            position: relative;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+            overflow: hidden;
+            max-height: 8em;
+            overflow-y: auto;
+        }
+        .user-bubble {
+            background-color: var(--user-bubble-bg);
+            align-self: flex-end;
+        }
+        .ai-bubble {
+            background-color: var(--ai-bubble-bg);
+            align-self: flex-start;
+        }
+        .model-name {
+            font-size: 0.8em;
+            color: var(--model-name-color);
+            margin-bottom: 5px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #007bff;
+        }
+        .input-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--app-background-color);
+            box-sizing: border-box;
+            gap: 10px;
+        }
+        .input-container button {
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .input-container button:hover {
+            background-color: #0056b3;
+        }
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            outline: none;
+            max-width: 600px;
+            color: var(--text-color);
+            background-color: var(--input-background-color);
+        }
+        .input-container .icon-button {
+            padding: 0 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+        }
+        .history-modal {
+            padding: 20px;
+        }
+        .history-session {
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-info {
+            flex: 1;
+        }
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .model-selection-modal {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 10px;
+        }
+        .model-selection-modal .model-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .model-selection-modal .model-item .mdui-checkbox {
+            margin-right: 10px;
+        }
+        .dark-mode {
+            --background-color: #121212;
+            --text-color: #ffffff;
+            --app-background-color: #1e1e1e;
+            --input-background-color: #2e2e2e;
+            --border-color: #333;
+            --user-bubble-bg: #2e3b4e;
+            --ai-bubble-bg: #3a3a3a;
+            --model-name-color: #bbb;
+        }
+        .light-mode {
+            --background-color: #f0f0f0;
+            --text-color: #000000;
+            --app-background-color: #ffffff;
+            --input-background-color: #ffffff;
+            --border-color: #ddd;
+            --user-bubble-bg: #cce5ff;
+            --ai-bubble-bg: #e2e3e5;
+            --model-name-color: #888;
+        }
+    </style>
+</head>
+<body class="mdui-theme-primary-indigo mdui-theme-accent-pink" :class="darkMode ? 'dark-mode' : 'light-mode'">
+    <div id="app" class="mdui-container">
+        <div class="top-bar">
+            <button class="mdui-btn mdui-btn-icon" @click="showHistory">
+                <i class="mdui-icon material-icons">history</i>
+            </button>
+            <div>Multi-AI Response App</div>
+            <button class="mdui-btn mdui-btn-icon" @click="toggleDarkMode">
+                <i class="mdui-icon material-icons">{{ darkMode ? 'brightness_7' : 'brightness_2' }}</i>
+            </button>
+        </div>
+        <div class="responses mdui-typo">
+            <div v-for="message in messages" :key="message.id" class="model-response">
+                <div class="bubble" :class="message.type">
+                    <div v-if="message.type === 'ai-bubble'" class="model-name">{{ message.model }}</div>
+                    <div v-html="message.content"></div>
+                    <button class="copy-btn mdui-btn mdui-btn-icon" @click="copyToClipboard(message.rawContent)">
+                        <i class="mdui-icon material-icons">content_copy</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="input-container mdui-textfield mdui-textfield-floating-label">
+            <button class="mdui-btn mdui-btn-icon icon-button" @click="showModelSelection">
+                🤖
+            </button>
+            <input class="mdui-textfield-input" type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
+            <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme" @click="getResponses">发送✈️</button>
+        </div>
+
+        <!-- Model Selection Dialog -->
+        <div id="model-selection-dialog" class="mdui-dialog model-selection-modal">
+            <div class="mdui-dialog-title">选择你喜爱的模型！</div>
+            <div class="mdui-dialog-content">
+                <div v-for="model in models" :key="model.name" class="model-item">
+                    <label class="mdui-checkbox">
+                        <input type="checkbox" v-model="model.selected"/>
+                        <i class="mdui-checkbox-icon"></i>
+                        {{ model.name }}
+                    </label>
+                </div>
+            </div>
+            <div class="mdui-dialog-actions">
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
+            </div>
+        </div>
+
+        <!-- History Dialog -->
+        <div id="history-dialog" class="mdui-dialog history-modal">
+            <div class="mdui-dialog-title">Chat History</div>
+            <div class="mdui-dialog-content">
+                <div v-if="!chatHistory.length">No chat history available.</div>
+                <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
+                    <div class="history-info">
+                        <p>{{ new Date(session.id).toLocaleString() }}</p>
+                    </div>
+                    <div class="history-actions">
+                        <button class="mdui-btn mdui-ripple" @click="deleteSession(index)">Delete</button>
+                        <button class="mdui-btn mdui-ripple" @click="exportSession(session)">Export</button>
+                    </div>
+                </div>
+            </div>
+            <div class="mdui-dialog-actions">
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        Vue.createApp({
+            data() {
+                return {
+                    question: '',
+                    messages: JSON.parse(localStorage.getItem('currentChat')) || [],
+                    darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
+                    models: [
+                        { name: "💫GPT-3.5", url: "https://35api.xinu.ink/v1/chat/completions", key: "pat_daW54gDQlWYDZJyIyL5acg1GpLZZW0iFjfsi6BhEGWwHFsHAZ8yrDEPc6gakGlTK", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🎶Suno", url: "https://sunoapi.xinu.ink/v1/chat/completions", key: "", response: '', responseHtml: '', loading: false, error: null, selected: false },
+                    ],
+                    chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
+                };
+            },
+            mounted() {
+                this.initChat();
+                this.applyDarkMode();
+            },
+            methods: {
+                initChat() {
+                    this.messages = [];
+                    this.scrollToBottom();
+                },
+                getResponses() {
+                    if (!this.question.trim()) return;
+
+                    const userMessage = {
+                        id: Date.now(),
+                        content: this.question,
+                        rawContent: this.question,
+                        type: 'user-bubble',
+                    };
+                    this.messages.push(userMessage);
+                    this.scrollToBottom();
+                    this.saveCurrentChat();
+
+                    this.models.forEach(model => {
+                        if (model.selected) {
+                            model.loading = true;
+                            fetch(model.url, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${model.key}`,
+                                },
+                                body: JSON.stringify({
+                                    messages: [{ role: 'user', content: this.question }],
+                                    stream: false,
+                                }),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                model.loading = false;
+                                const aiResponse = {
+                                    id: Date.now() + Math.random(),
+                                    content: marked.parse(data.choices[0].message.content),
+                                    rawContent: data.choices[0].message.content,
+                                    type: 'ai-bubble',
+                                    model: model.name,
+                                };
+                                this.messages.push(aiResponse);
+                                this.scrollToBottom();
+                                this.saveCurrentChat();
+                            })
+                            .catch(error => {
+                                model.loading = false;
+                                model.error = error.message;
+                                console.error('Error:', error);
+                            });
+                        }
+                    });
+
+                    this.question = '';
+                },
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const container = this.$el.querySelector('.responses');
+                        container.scrollTop = container.scrollHeight;
+                    });
+                },
+                saveCurrentChat() {
+                    localStorage.setItem('currentChat', JSON.stringify(this.messages));
+                },
+                showHistory() {
+                    const historyDialog = new mdui.Dialog('#history-dialog');
+                    historyDialog.open();
+                },
+                getSessionSummary(session) {
+                    return session.messages.map(msg => msg.rawContent).join(' ');
+                },
+                deleteSession(index) {
+                    this.chatHistory.splice(index, 1);
+                    localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+                },
+                exportSession(session) {
+                    const blob = new Blob([JSON.stringify(session)], { type: 'application/json' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `session_${session.id}.json`;
+                    link.click();
+                },
+                copyToClipboard(content) {
+                    navigator.clipboard.writeText(content).then(() => {
+                        mdui.snackbar({
+                            message: 'Copied to clipboard',
+                            position: 'right-top',
+                        });
+                    });
+                },
+                showModelSelection() {
+                    const modelSelectionDialog = new mdui.Dialog('#model-selection-dialog');
+                    modelSelectionDialog.open();
+                },
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                    this.applyDarkMode();
+                },
+                applyDarkMode() {
+                    document.body.classList.toggle('dark-mode', this.darkMode);
+                    document.body.classList.toggle('light-mode', !this.darkMode);
+                }
+            },
+        }).mount('#app');
+    </script>
+</body>
+</html>
