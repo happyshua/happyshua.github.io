@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="application-name" content="LLMs">
     <!-- 自定义应用图标可用 -->
     <link rel="apple-touch-icon-precomposed" sizes="240x240" href="https://lab.xinu.ink/ai/logo.jpg">
@@ -355,6 +356,7 @@
                                 this.messages.push(aiResponse);
                                 this.scrollToBottom();
                                 this.saveCurrentChat();
+                                this.saveChatHistory();
                             })
                             .catch(error => {
                                 model.loading = false;
@@ -364,7 +366,6 @@
                         }
                     });
 
-                    this.saveChatHistory();
                     this.question = '';
                 },
                 scrollToBottom() {
@@ -425,6 +426,8 @@
                             message: 'Copied to clipboard',
                             position: 'right-top',
                         });
+                    }).catch(err => {
+                        console.error('Could not copy text: ', err);
                     });
                 },
                 showModelSelection() {
