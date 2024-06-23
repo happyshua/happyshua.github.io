@@ -4,13 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="application-name" content="LLMs">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="application-name" content="LLMs">
     <!-- 自定义应用图标可用 -->
     <link rel="apple-touch-icon-precomposed" sizes="240x240" href="https://lab.xinu.ink/ai/logo.jpg">
     <!-- 全屏设置 -->
-    <meta name="viewport" content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
-    <!-- 网站开启对 web app 程序的支持 具体表现为去除浏览器地址栏和底部导航栏 ：先保存为桌面书签，然后通过书签打开即可生效-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
+    <!-- 网站开启对 web app 程序的支持 具体表现为去除浏览器地址栏和底部导航栏 ：先保存为桌面书签，然后通过书签打开即可生效 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- 设置状态栏样式，支持 default, black, black-translucent -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>LLMs</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui/dist/css/mdui.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/mdui/dist/js/mdui.min.js"></script>
@@ -201,6 +204,9 @@
             --ai-bubble-bg: #e2e3e5;
             --model-name-color: #888;
         }
+        .hidden {
+    display: none;
+}
     </style>
 </head>
 <body class="mdui-theme-primary-indigo mdui-theme-accent-pink" :class="darkMode ? 'dark-mode' : 'light-mode'">
@@ -251,28 +257,28 @@
                 </div>
             </div>
             <div class="mdui-dialog-actions">
-                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭</button>
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
             </div>
         </div>
 
         <!-- Chat History Dialog -->
         <div id="history-dialog" class="mdui-dialog history-modal">
-            <div class="mdui-dialog-title">Chat History</div>
+            <div class="mdui-dialog-title">历史记录</div>
             <div class="mdui-dialog-content">
-                <div v-if="!chatHistory.length">No chat history available.</div>
+                <div v-if="!chatHistory.length">看起来你还没和大模型们聊过天哦！快去试试～</div>
                 <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
                     <div class="history-info" @click="loadSession(session)">
                         <p>{{ new Date(session.lastUpdated).toLocaleString() }}</p>
                         <p>{{ session.title }}</p>
                     </div>
                     <div class="history-actions">
-                        <button class="mdui-btn mdui-ripple" @click.stop="deleteSession(index)">Delete</button>
-                        <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">Export</button>
+                        <button class="mdui-btn mdui-ripple" @click.stop="deleteSession(index)">🗑️删除</button>
+                        <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">🫗导出</button>
                     </div>
                 </div>
             </div>
             <div class="mdui-dialog-actions">
-                <button class="mdui-btn mdui-ripple" mdui-dialog-close>Close</button>
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
             </div>
         </div>
     </div>
@@ -307,9 +313,15 @@
                 };
             },
             mounted() {
-                this.initChat();
-                this.applyDarkMode();
-            },
+    this.initChat();
+    this.applyDarkMode();
+    // 确保模型选择窗口在页面加载时隐藏
+    const modelSelectionDialog = document.getElementById('model-selection-dialog');
+    if (modelSelectionDialog) {
+        modelSelectionDialog.classList.add('hidden');
+    }
+},
+                                        
             methods: {
                 initChat() {
                     this.messages = [];
@@ -355,6 +367,7 @@
                                 this.messages.push(aiResponse);
                                 this.scrollToBottom();
                                 this.saveCurrentChat();
+                                this.saveChatHistory();
                             })
                             .catch(error => {
                                 model.loading = false;
@@ -364,7 +377,6 @@
                         }
                     });
 
-                    this.saveChatHistory();
                     this.question = '';
                 },
                 scrollToBottom() {
@@ -415,22 +427,33 @@
                     this.messages = session.messages;
                     this.saveCurrentChat();
                     mdui.snackbar({
-                        message: 'Chat loaded',
+                        message: '聊天记录已载入📝',
                         position: 'right-top',
                     });
                 },
                 copyToClipboard(content) {
                     navigator.clipboard.writeText(content).then(() => {
                         mdui.snackbar({
-                            message: 'Copied to clipboard',
+                            message: '已复制到剪贴板📋',
                             position: 'right-top',
                         });
+                    }).catch(err => {
+                        console.error('Could not copy text: ', err);
                     });
                 },
                 showModelSelection() {
-                    const modelSelectionDialog = new mdui.Dialog('#model-selection-dialog');
-                    modelSelectionDialog.open();
-                },
+    const modelSelectionDialog = new mdui.Dialog('#model-selection-dialog', {
+        history: false,
+        overlay: true,
+        onOpen: () => {
+            document.getElementById('model-selection-dialog').classList.remove('hidden');
+        },
+        onClose: () => {
+            document.getElementById('model-selection-dialog').classList.add('hidden');
+        }
+    });
+    modelSelectionDialog.open();
+}
                 toggleDarkMode() {
                     this.darkMode = !this.darkMode;
                     this.applyDarkMode();
