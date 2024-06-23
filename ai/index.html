@@ -254,28 +254,28 @@
                 </div>
             </div>
             <div class="mdui-dialog-actions">
-                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭</button>
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
             </div>
         </div>
 
         <!-- Chat History Dialog -->
         <div id="history-dialog" class="mdui-dialog history-modal">
-            <div class="mdui-dialog-title">Chat History</div>
+            <div class="mdui-dialog-title">历史记录</div>
             <div class="mdui-dialog-content">
-                <div v-if="!chatHistory.length">No chat history available.</div>
+                <div v-if="!chatHistory.length">看起来你还没和大模型们聊过天哦！快去试试～</div>
                 <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
                     <div class="history-info" @click="loadSession(session)">
                         <p>{{ new Date(session.lastUpdated).toLocaleString() }}</p>
                         <p>{{ session.title }}</p>
                     </div>
                     <div class="history-actions">
-                        <button class="mdui-btn mdui-ripple" @click.stop="deleteSession(index)">Delete</button>
-                        <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">Export</button>
+                        <button class="mdui-btn mdui-ripple" @click.stop="deleteSession(index)">🗑️删除</button>
+                        <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">🫗导出</button>
                     </div>
                 </div>
             </div>
             <div class="mdui-dialog-actions">
-                <button class="mdui-btn mdui-ripple" mdui-dialog-close>Close</button>
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
             </div>
         </div>
     </div>
