@@ -419,14 +419,14 @@
                     this.messages = session.messages;
                     this.saveCurrentChat();
                     mdui.snackbar({
-                        message: 'Chat loaded',
+                        message: '聊天记录已载入📝',
                         position: 'right-top',
                     });
                 },
                 copyToClipboard(content) {
                     navigator.clipboard.writeText(content).then(() => {
                         mdui.snackbar({
-                            message: 'Copied to clipboard',
+                            message: '已复制到剪贴板📋',
                             position: 'right-top',
                         });
                     }).catch(err => {
