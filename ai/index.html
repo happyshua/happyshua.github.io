@@ -307,16 +307,16 @@
                     chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
                 };
             },
-                            setTimeout(() => {
+            mounted() {
+                this.initChat();
+                this.applyDarkMode();
+            },
+                                        setTimeout(() => {
                     document.getElementById('model-selection-button').click();
                     setTimeout(() => {
                         document.querySelector('#model-selection-dialog .mdui-dialog-actions button[mdui-dialog-confirm]').click();
                     }, 1500);
                 }, 1000);
-            },
-            mounted() {
-                this.initChat();
-                this.applyDarkMode();
             },
             methods: {
                 initChat() {
