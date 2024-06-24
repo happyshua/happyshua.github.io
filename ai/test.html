@@ -360,17 +360,19 @@
                 .then(response => response.json())
                 .then(data => {
                     model.loading = false;
-                    const aiResponse = {
-                        id: Date.now() + Math.random(),
-                        content: marked.parse(data.choices[0].message.content),
-                        rawContent: data.choices[0].message.content,
-                        type: 'ai-bubble',
-                        model: model.name,
-                    };
-                    this.messages.push(aiResponse);
-                    this.scrollToBottom();
-                    this.saveCurrentChat();
-                    this.saveChatHistory();
+                    if (data.choices && data.choices.length > 0) {
+                        const aiResponse = {
+                            id: Date.now() + Math.random(),
+                            content: marked.parse(data.choices[0].message.content),
+                            rawContent: data.choices[0].message.content,
+                            type: 'ai-bubble',
+                            model: model.name,
+                        };
+                        this.messages.push(aiResponse);
+                        this.scrollToBottom();
+                        this.saveCurrentChat();
+                        this.saveChatHistory();
+                    }
                 })
                 .catch(error => {
                     model.loading = false;
@@ -437,14 +439,14 @@
 
                 const existingSessionIndex = this.chatHistory.findIndex(s => s.id === session.id);
                 if (existingSessionIndex !== -1) {
-                    this.chatHistory.splice(existingSessionIndex, 1, session);
+                    this.chatHistory[existingSessionIndex] = session;
                 } else {
                     this.chatHistory.push(session);
                 }
 
                 localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
             },
-            showHistory() {
+            openHistoryDialog() {
                 const historyDialog = new mdui.Dialog('#history-dialog');
                 historyDialog.open();
             },
