@@ -279,15 +279,16 @@
             </div>
         </div>
     </div>
-<script>
-    Vue.createApp({
-        data() {
-            return {
-                question: '',
-                messages: JSON.parse(localStorage.getItem('currentChat')) || [],
-                darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
-                models: [
-                    { name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw,eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyNjY2MzIxMywiaWF0IjoxNzE4ODg3MjEzLCJqdGkiOiJjcHEyNmJkdmJmNnRwNGsydTlhMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjcHEyNmJkdmJmNnRwNGsydTk4ZyIsInNwYWNlX2lkIjoiY3BxMjZiZHZiZjZ0cDRrMnU5N2ciLCJhYnN0cmFjdF91c2VyX2lkIjoiY3BxMjZiZHZiZjZ0cDRrMnU5NzAifQ.RJmyBPr5VXzwCxhPgFOgsAhQYdprx_ELA3H3a-7J8Kb13hLP5TcF5tV66S0aNUqUHwBx9AQAFQ_sWNC7AiePkQ", response: '', responseHtml: '', loading: false, error: null, selected: true },
+
+    <script>
+        Vue.createApp({
+            data() {
+                return {
+                    question: '',
+                    messages: JSON.parse(localStorage.getItem('currentChat')) || [],
+                    darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
+                    models: [
+{ name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw,eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyNjY2MzIxMywiaWF0IjoxNzE4ODg3MjEzLCJqdGkiOiJjcHEyNmJkdmJmNnRwNGsydTlhMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjcHEyNmJkdmJmNnRwNGsydTk4ZyIsInNwYWNlX2lkIjoiY3BxMjZiZHZiZjZ0cDRrMnU5N2ciLCJhYnN0cmFjdF91c2VyX2lkIjoiY3BxMjZiZHZiZjZ0cDRrMnU5NzAifQ.RJmyBPr5VXzwCxhPgFOgsAhQYdprx_ELA3H3a-7J8Kb13hLP5TcF5tV66S0aNUqUHwBx9AQAFQ_sWNC7AiePkQ", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🐕GLM4", url: "https://glmapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxODY5OTU5MywianRpIjoiMjI3NzE1NjQtOWVhMi00YzZlLTgyY2UtZTEyZTEyNmQ3MmM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJiMzMxOTcyZWM3NTU0NmI0YjM2ZjVmMzNlMjM5NjMwNCIsIm5iZiI6MTcxODY5OTU5MywiZXhwIjoxNzM0MjUxNTkzLCJ1aWQiOiI2NjcxNDY0ODk1NWNiOGFlYzMwNDgxNTMiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.MouPoauYGPVahmM6QG6TjbyNTuPVhe35NDECjmwirUw,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxODg4ODI2NywianRpIjoiODU5MDk0YzgtYjIxYS00ODM0LWE3OWMtMmEzZTE0ZThhZTI0IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJjNjZiOWQ0OTJlZjc0OGRjOTRjZmM3ZTgxMTU5ZWI4MSIsIm5iZiI6MTcxODg4ODI2NywiZXhwIjoxNzM0NDQwMjY3LCJ1aWQiOiI2Njc0Mjc0YTRlZmRiODUxMmRjNWU3ODIiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.nd8HeSco_8LKnDs2f24end2_QIDjJ1a_mySDy_kc05Y", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🐣QWen", url: "https://qwenapi.xinu.ink/v1/chat/completions", key: "3LITHzOAbvZbFHT9J55YBCxYJ5CUsle4m*trtMUHEnF6AFvL_vshhJXJycrhAXcs0,qBLxb3I3SEmqcKYtreMU*Ent6AHvLFvsFhJ_PTEka9AVI7a5tLvNX4OTOTbD5WVY0", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🧠META", url: "https://metaapi.xinu.ink/v1/chat/completions", key: "6616d1b3d0fd75295d361294-7c454da98a3c413da4c58065b03d928f,667427c5d4a1e716fd326ed0-98bc38c363b9407bb7fcf5b2407cce45", response: '', responseHtml: '', loading: false, error: null, selected: true },
@@ -304,201 +305,151 @@
                         { name: "💎GPT-4o（备用）", url: "https://4oapi.xinu.ink/v1/chat/completions", key: "pat_3xiUrFuCvi4fpSwF5EtJZSm3Wh0j2jDBxtdOTXXT534hJqSRWZBZlubivaK71giT", response: '', responseHtml: '', loading: false, error: null, selected: false },
                         { name: "💫GPT-3.5", url: "https://35api.xinu.ink/v1/chat/completions", key: "pat_daW54gDQlWYDZJyIyL5acg1GpLZZW0iFjfsi6BhEGWwHFsHAZ8yrDEPc6gakGlTK", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🎶Suno", url: "https://sunoapi.xinu.ink/v1/chat/completions", key: "", response: '', responseHtml: '', loading: false, error: null, selected: false },
-                    { name: "🫘Doubao", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_83SPfqVW05UCt4WYvgJlU9W3TgClSDDzqkvNzXjV2q2srbW2DFSwjELTz4SEknQc", botId: "7383976691804733452", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                    { name: "💦Baichuan4", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_uqcc1qS1VJVgu8TrV4QFoh931DDa25Z03cgIhWQOeywPFnFQ0ioy56ajtQ2jy2Rm", botId: "7383939253954592787", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                ],
-                chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
-            };
-        },
-        mounted() {
-            this.initChat();
-            this.applyDarkMode();
-        },
-        methods: {
-            initChat() {
-                this.messages = [];
-                this.scrollToBottom();
-            },
-            getResponses() {
-                if (!this.question.trim()) return;
-
-                const userMessage = {
-                    id: Date.now(),
-                    content: this.question,
-                    rawContent: this.question,
-                    type: 'user-bubble',
+                    ],
+                    chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
                 };
-                this.messages.push(userMessage);
-                this.scrollToBottom();
-                this.saveCurrentChat();
-
-                this.models.forEach(model => {
-                    if (model.selected) {
-                        model.loading = true;
-                        if (model.requestType === "type1") {
-                            this.sendRequestType1(model);
-                        } else if (model.requestType === "doubao") {
-                            this.sendRequestDoubao(model);
-                        }
-                    }
-                });
-
-                this.question = '';
             },
-            sendRequestType1(model) {
-                fetch(model.url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${model.key}`,
-                    },
-                    body: JSON.stringify({
-                        messages: [{ role: 'user', content: this.question }],
-                        stream: false,
-                    }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    model.loading = false;
-                    if (data.choices && data.choices.length > 0) {
-                        const aiResponse = {
-                            id: Date.now() + Math.random(),
-                            content: marked.parse(data.choices[0].message.content),
-                            rawContent: data.choices[0].message.content,
-                            type: 'ai-bubble',
-                            model: model.name,
-                        };
-                        this.messages.push(aiResponse);
-                        this.scrollToBottom();
-                        this.saveCurrentChat();
-                        this.saveChatHistory();
-                    }
-                })
-                .catch(error => {
-                    model.loading = false;
-                    model.error = error.message;
-                    console.error('Error:', error);
-                });
-            },
-            sendRequestDoubao(model) {
-                fetch(model.url, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${model.key}`,
-                        'Content-Type': 'application/json',
-                        'Connection': 'keep-alive',
-                        'Accept': '*/*',
-                    },
-                    body: JSON.stringify({
-                        bot_id: model.botId,
-                        user: model.userId,
-                        query: this.question,
-                        stream: false,
-                    }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    model.loading = false;
-                    const firstMessage = data.messages.find(msg => msg.role === 'assistant' && msg.type === 'answer');
-                    if (firstMessage) {
-                        const aiResponse = {
-                            id: Date.now() + Math.random(),
-                            content: marked.parse(firstMessage.content),
-                            rawContent: firstMessage.content,
-                            type: 'ai-bubble',
-                            model: model.name,
-                        };
-                        this.messages.push(aiResponse);
-                        this.scrollToBottom();
-                        this.saveCurrentChat();
-                        this.saveChatHistory();
-                    }
-                })
-                .catch(error => {
-                    model.loading = false;
-                    model.error = error.message;
-                    console.error('Error:', error);
-                });
-            },
-            scrollToBottom() {
-                this.$nextTick(() => {
-                    const container = this.$el.querySelector('.responses');
-                    container.scrollTop = container.scrollHeight;
-                });
-            },
-            saveCurrentChat() {
-                localStorage.setItem('currentChat', JSON.stringify(this.messages));
-            },
-            saveChatHistory() {
-                const session = {
-                    id: this.messages[0]?.id || Date.now(),
-                    lastUpdated: Date.now(),
-                    title: this.messages[0]?.rawContent || 'Untitled',
-                    messages: this.messages,
-                };
-
-                const existingSessionIndex = this.chatHistory.findIndex(s => s.id === session.id);
-                if (existingSessionIndex !== -1) {
-                    this.chatHistory[existingSessionIndex] = session;
-                } else {
-                    this.chatHistory.push(session);
-                }
-
-                localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
-            },
-            openHistoryDialog() {
-                const historyDialog = new mdui.Dialog('#history-dialog');
-                historyDialog.open();
-            },
-            getSessionSummary(session) {
-                return session.messages.map(msg => msg.rawContent).join(' ');
-            },
-            deleteSession(index) {
-                this.chatHistory.splice(index, 1);
-                localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
-            },
-            exportSession(session) {
-                const blob = new Blob([JSON.stringify(session)], { type: 'application/json' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `session_${session.id}.json`;
-                link.click();
-            },
-            loadSession(session) {
-                this.messages = session.messages;
-                this.saveCurrentChat();
-                mdui.snackbar({
-                    message: '聊天记录已载入📝',
-                    position: 'right-top',
-                });
-            },
-            copyToClipboard(content) {
-                navigator.clipboard.writeText(content).then(() => {
-                    mdui.snackbar({
-                        message: '已复制到剪贴板📋',
-                        position: 'right-top',
-                    });
-                }).catch(err => {
-                    console.error('Could not copy text: ', err);
-                });
-            },
-            showModelSelection() {
-                const modelSelectionDialog = new mdui.Dialog('#model-selection-dialog');
-                modelSelectionDialog.open();
-            },
-            toggleDarkMode() {
-                this.darkMode = !this.darkMode;
+            mounted() {
+                this.initChat();
                 this.applyDarkMode();
             },
-            applyDarkMode() {
-                document.body.classList.toggle('dark-mode', this.darkMode);
-                document.body.classList.toggle('light-mode', !this.darkMode);
+                                        
+            methods: {
+                initChat() {
+                    this.messages = [];
+                    this.scrollToBottom();
+                },
+                getResponses() {
+                    if (!this.question.trim()) return;
+
+                    const userMessage = {
+                        id: Date.now(),
+                        content: this.question,
+                        rawContent: this.question,
+                        type: 'user-bubble',
+                    };
+                    this.messages.push(userMessage);
+                    this.scrollToBottom();
+                    this.saveCurrentChat();
+
+                    this.models.forEach(model => {
+                        if (model.selected) {
+                            model.loading = true;
+                            fetch(model.url, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': Bearer ${model.key},
+                                },
+                                body: JSON.stringify({
+                                    messages: [{ role: 'user', content: this.question }],
+                                    stream: false,
+                                }),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                model.loading = false;
+                                const aiResponse = {
+                                    id: Date.now() + Math.random(),
+                                    content: marked.parse(data.choices[0].message.content),
+                                    rawContent: data.choices[0].message.content,
+                                    type: 'ai-bubble',
+                                    model: model.name,
+                                };
+                                this.messages.push(aiResponse);
+                                this.scrollToBottom();
+                                this.saveCurrentChat();
+                                this.saveChatHistory();
+                            })
+                            .catch(error => {
+                                model.loading = false;
+                                model.error = error.message;
+                                console.error('Error:', error);
+                            });
+                        }
+                    });
+
+                    this.question = '';
+                },
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const container = this.$el.querySelector('.responses');
+                        container.scrollTop = container.scrollHeight;
+                    });
+                },
+                saveCurrentChat() {
+                    localStorage.setItem('currentChat', JSON.stringify(this.messages));
+                },
+                saveChatHistory() {
+                    const session = {
+                        id: this.messages[0]?.id || Date.now(),
+                        lastUpdated: Date.now(),
+                        title: this.messages[0]?.rawContent || 'Untitled',
+                        messages: this.messages,
+                    };
+
+                    const existingSessionIndex = this.chatHistory.findIndex(s => s.id === session.id);
+                    if (existingSessionIndex !== -1) {
+                        this.chatHistory.splice(existingSessionIndex, 1, session);
+                    } else {
+                        this.chatHistory.push(session);
+                    }
+
+                    localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+                },
+                showHistory() {
+                    const historyDialog = new mdui.Dialog('#history-dialog');
+                    historyDialog.open();
+                },
+                getSessionSummary(session) {
+                    return session.messages.map(msg => msg.rawContent).join(' ');
+                },
+                deleteSession(index) {
+                    this.chatHistory.splice(index, 1);
+                    localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+                },
+                exportSession(session) {
+                    const blob = new Blob([JSON.stringify(session)], { type: 'application/json' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = session_${session.id}.json;
+                    link.click();
+                },
+                loadSession(session) {
+                    this.messages = session.messages;
+                    this.saveCurrentChat();
+                    mdui.snackbar({
+                        message: '聊天记录已载入📝',
+                        position: 'right-top',
+                    });
+                },
+                copyToClipboard(content) {
+                    navigator.clipboard.writeText(content).then(() => {
+                        mdui.snackbar({
+                            message: '已复制到剪贴板📋',
+                            position: 'right-top',
+                        });
+                    }).catch(err => {
+                        console.error('Could not copy text: ', err);
+                    });
+                },
+                showModelSelection() {
+                    const modelSelectionDialog = new mdui.Dialog('#model-selection-dialog');
+                    modelSelectionDialog.open();
+                },
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                    this.applyDarkMode();
+                },
+                applyDarkMode() {
+                    document.body.classList.toggle('dark-mode', this.darkMode);
+                    document.body.classList.toggle('light-mode', !this.darkMode);
+                },
+                refreshPage() {
+                    location.reload();
+                }
             },
-            refreshPage() {
-                location.reload();
-            }
-        },
-    }).mount('#app');
-</script>
+        }).mount('#app');
+    </script>
 </body>
 </html>
