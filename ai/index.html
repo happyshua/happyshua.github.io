@@ -204,6 +204,11 @@
             --ai-bubble-bg: #e2e3e5;
             --model-name-color: #888;
         }
+        		/* 确保对话框初始状态为隐藏 */
+		#model-selection-dialog,
+		#history-dialog {
+		    display: none;
+		}
     </style>
 </head>
 <body class="mdui-theme-primary-indigo mdui-theme-accent-pink" :class="darkMode ? 'dark-mode' : 'light-mode'">
