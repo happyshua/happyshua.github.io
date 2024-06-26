@@ -1,0 +1,544 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="application-name" content="LLMs">
+    <!-- 自定义应用图标可用 -->
+    <link rel="apple-touch-icon-precomposed" sizes="240x240" href="https://lab.xinu.ink/ai/logo.jpg">
+    <!-- 全屏设置 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
+    <!-- 网站开启对 web app 程序的支持 具体表现为去除浏览器地址栏和底部导航栏 ：先保存为桌面书签，然后通过书签打开即可生效 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- 设置状态栏样式，支持 default, black, black-translucent -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>LLMs</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui/dist/css/mdui.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/mdui/dist/js/mdui.min.js"></script>
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* 样式保持不变 */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--text-color);
+        }
+        #app {
+            background-color: var(--app-background-color);
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .top-bar {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 1000px;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+        .top-bar .mdui-btn-icon {
+            margin-right: 10px;
+        }
+        .responses {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            padding: 70px 20px 80px 20px;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+        .bubble {
+            position: relative;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+            overflow: hidden;
+            max-height: 8em;
+            overflow-y: auto;
+        }
+        .user-bubble {
+            background-color: var(--user-bubble-bg);
+            align-self: flex-end;
+        }
+        .ai-bubble {
+            background-color: var(--ai-bubble-bg);
+            align-self: flex-start;
+        }
+        .model-name {
+            font-size: 0.8em;
+            color: var(--model-name-color);
+            margin-bottom: 5px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #007bff;
+        }
+        .input-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--app-background-color);
+            box-sizing: border-box;
+            gap: 10px;
+        }
+        .input-container button {
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .input-container button:hover {
+            background-color: #0056b3;
+        }
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            outline: none;
+            max-width: 600px;
+            color: var(--text-color);
+            background-color: var(--input-background-color);
+        }
+        .input-container .icon-button {
+            padding: 0 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+        }
+        .history-modal {
+            padding: 20px;
+        }
+        .history-session {
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-info {
+            flex: 1;
+        }
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .model-selection-modal {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 10px;
+        }
+        .model-selection-modal .model-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .model-selection-modal .model-item .mdui-checkbox {
+            margin-right: 10px;
+        }
+        .dark-mode {
+            --background-color: #121212;
+            --text-color: #ffffff;
+            --app-background-color: #1e1e1e;
+            --input-background-color: #2e2e2e;
+            --border-color: #333;
+            --user-bubble-bg: #2e3b4e;
+            --ai-bubble-bg: #3a3a3a;
+            --model-name-color: #bbb;
+        }
+        .light-mode {
+            --background-color: #f0f0f0;
+            --text-color: #000000;
+            --app-background-color: #ffffff;
+            --input-background-color: #ffffff;
+            --border-color: #ddd;
+            --user-bubble-bg: #cce5ff;
+            --ai-bubble-bg: #e2e3e5;
+            --model-name-color: #888;
+        }
+        		/* 确保对话框初始状态为隐藏 */
+		#model-selection-dialog,
+		#history-dialog {
+		    display: none;
+		}
+    </style>
+</head>
+<body class="mdui-theme-primary-indigo mdui-theme-accent-pink" :class="darkMode ? 'dark-mode' : 'light-mode'">
+    <div id="app" class="mdui-container">
+        <div class="top-bar">
+            <div>
+                <button class="mdui-btn mdui-btn-icon" @click="openHistoryDialog">
+                    <i class="mdui-icon material-icons">history</i>
+                </button>
+                <button class="mdui-btn mdui-btn-icon" @click="refreshPage">
+                    <i class="mdui-icon material-icons">add</i>
+                </button>
+            </div>
+            <div>😨🔚🥚❗🙋‍♂️🛌😶🤖👜🧣</div>
+            <button class="mdui-btn mdui-btn-icon" @click="toggleDarkMode">
+                <i class="mdui-icon material-icons">{{ darkMode ? 'brightness_7' : 'brightness_2' }}</i>
+            </button>
+        </div>
+        <div class="responses mdui-typo">
+            <div v-for="message in messages" :key="message.id" class="model-response">
+                <div class="bubble" :class="message.type">
+                    <div v-if="message.type === 'ai-bubble'" class="model-name">{{ message.model }}</div>
+                    <div v-html="message.content"></div>
+                    <button class="copy-btn mdui-btn mdui-btn-icon" @click="copyToClipboard(message.rawContent)">
+                        <i class="mdui-icon material-icons">content_copy</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="input-container mdui-textfield mdui-textfield-floating-label">
+            <button class="mdui-btn mdui-btn-icon icon-button" @click="showModelSelection">
+                🤖
+            </button>
+            <input class="mdui-textfield-input" type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
+            <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme" @click="getResponses">发送✈️</button>
+        </div>
+
+<!-- Model Selection Dialog -->
+<div id="model-selection-dialog" class="mdui-dialog model-selection-modal">
+    <div class="mdui-dialog-title">选择你喜爱的模型！</div>
+    <div class="mdui-dialog-content">
+        <div class="model-item">
+            <label class="mdui-checkbox">
+                <input type="checkbox" v-model="allSelected" @change="toggleAll"/>
+                <i class="mdui-checkbox-icon"></i>
+                📣全选
+            </label>
+        </div>
+        <div v-for="model in models" :key="model.name" class="model-item">
+            <label class="mdui-checkbox">
+                <input type="checkbox" v-model="model.selected"/>
+                <i class="mdui-checkbox-icon"></i>
+                {{ model.name }}
+            </label>
+        </div>
+    </div>
+    <div class="mdui-dialog-actions">
+        <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
+    </div>
+</div>
+
+        <!-- Chat History Dialog -->
+        <div id="history-dialog" class="mdui-dialog history-modal">
+            <div class="mdui-dialog-title">历史记录</div>
+            <div class="mdui-dialog-content">
+                <div v-if="!chatHistory.length">看起来你还没和大模型们聊过天哦！快去试试～</div>
+                <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
+                    <div class="history-info" @click="loadSession(session)">
+                        <p>{{ new Date(session.lastUpdated).toLocaleString() }}</p>
+                        <p>{{ session.title }}</p>
+                    </div>
+                    <div class="history-actions">
+                        <button class="mdui-btn mdui-ripple" @click.stop="deleteSession(index)">🗑️删除</button>
+                        <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">🫗导出</button>
+                    </div>
+                </div>
+            </div>
+            <div class="mdui-dialog-actions">
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
+            </div>
+        </div>
+    </div>
+<script>
+Vue.createApp({
+    data() {
+        return {
+            question: '',
+            messages: JSON.parse(localStorage.getItem('currentChat')) || [],
+            darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
+            allSelected: false, // 新增全选变量
+            models: [
+						{ name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw,eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyNjY2MzIxMywiaWF0IjoxNzE4ODg3MjEzLCJqdGkiOiJjcHEyNmJkdmJmNnRwNGsydTlhMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjcHEyNmJkdmJmNnRwNGsydTk4ZyIsInNwYWNlX2lkIjoiY3BxMjZiZHZiZjZ0cDRrMnU5N2ciLCJhYnN0cmFjdF91c2VyX2lkIjoiY3BxMjZiZHZiZjZ0cDRrMnU5NzAifQ.RJmyBPr5VXzwCxhPgFOgsAhQYdprx_ELA3H3a-7J8Kb13hLP5TcF5tV66S0aNUqUHwBx9AQAFQ_sWNC7AiePkQ", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🐕GLM4", url: "https://glmapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxODY5OTU5MywianRpIjoiMjI3NzE1NjQtOWVhMi00YzZlLTgyY2UtZTEyZTEyNmQ3MmM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJiMzMxOTcyZWM3NTU0NmI0YjM2ZjVmMzNlMjM5NjMwNCIsIm5iZiI6MTcxODY5OTU5MywiZXhwIjoxNzM0MjUxNTkzLCJ1aWQiOiI2NjcxNDY0ODk1NWNiOGFlYzMwNDgxNTMiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.MouPoauYGPVahmM6QG6TjbyNTuPVhe35NDECjmwirUw,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxODg4ODI2NywianRpIjoiODU5MDk0YzgtYjIxYS00ODM0LWE3OWMtMmEzZTE0ZThhZTI0IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJjNjZiOWQ0OTJlZjc0OGRjOTRjZmM3ZTgxMTU5ZWI4MSIsIm5iZiI6MTcxODg4ODI2NywiZXhwIjoxNzM0NDQwMjY3LCJ1aWQiOiI2Njc0Mjc0YTRlZmRiODUxMmRjNWU3ODIiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.nd8HeSco_8LKnDs2f24end2_QIDjJ1a_mySDy_kc05Y", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🐣QWen", url: "https://qwenapi.xinu.ink/v1/chat/completions", key: "3LITHzOAbvZbFHT9J55YBCxYJ5CUsle4m*trtMUHEnF6AFvL_vshhJXJycrhAXcs0,qBLxb3I3SEmqcKYtreMU*Ent6AHvLFvsFhJ_PTEka9AVI7a5tLvNX4OTOTbD5WVY0", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🍯META", url: "https://metaapi.xinu.ink/v1/chat/completions", key: "6616d1b3d0fd75295d361294-7c454da98a3c413da4c58065b03d928f,667427c5d4a1e716fd326ed0-98bc38c363b9407bb7fcf5b2407cce45", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🐚神奇海螺", url: "https://abcapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjIxNDg1ODMsInVzZXIiOnsiaWQiOiIyNDMwNjkyMjcwMTkyMDI1NjIiLCJuYW1lIjoi5bCP6J665bi9MjU2MiIsImF2YXRhciI6Imh0dHBzOi8vY2RuLnlpbmdzaGktYWkuY29tL3Byb2QvdXNlcl9hdmF0YXIvMTcwNjI2NzcxMTI4Mjc3MDg3Mi0xNzMxOTQ1NzA2Njg5NjU4OTZvdmVyc2l6ZS5wbmciLCJkZXZpY2VJRCI6IjI1OTM2MDcyNzA2MzY1NDQwMCIsImlzQW5vbnltb3VzIjpmYWxzZX19.jdBU4HHObgNFk5BLDFFq_394Y1LWU_4krabjfqFoqLw,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjIzNDQ5ODUsInVzZXIiOnsiaWQiOiIyNjAxODQ0NDM5MjY0Mjk3MDMiLCJuYW1lIjoi5bCP6J665bi9OTcwMyIsImF2YXRhciI6Imh0dHBzOi8vY2RuLnlpbmdzaGktYWkuY29tL3Byb2QvdXNlcl9hdmF0YXIvMTcwNjI2NzM2NDE2NDQwNDA3Ny0xNzMxOTQ1NzA2Njg5NjU4OTZvdmVyc2l6ZS5wbmciLCJkZXZpY2VJRCI6IjI2MDE4NDQ0MzY0NTQwMzEzOSIsImlzQW5vbnltb3VzIjpmYWxzZX19.iZflG0g4QZVtwvvc-xNcguEE0S5iYkP8mhhfp0LLgis", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🤯DeepSeek", url: "https://deepapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzc29faWQiOiIwYzQwYjY0OS01ZWY2LTRiZDMtODY3OS1iNDM1MjJkYzA5MDUiLCJpc19vYXV0aCI6MSwib2F1dGhfcHJvdmlkZXIiOiJnb29nbGUiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiYWNjZXNzX3Rva2VuIjoieWEyOS5hMEFYb29DZ3ZFRVR1Tjl6VGdONDVsUTNzTm5UZVNCNlRDTHFRNXRjaUMycV9rT2FRb1NNVHpDak9GQUlVc2RPQV9ZOVBpdW8tOFc4TWhlNUIteEFnb0pjNHdvUkhyWFdUSmoyZnVnZC1rRm92N0plR1JXUlNHYTEyeG5JcnpYWTFUTDJNSWp0T1lFcTlza2lnTkJnSE1EdFVzY29fZW1fOGVXcDk3YUNnWUtBYXNTQVJBU0ZRSEdYMk1pdHZBaHpVZHhzZWN4S0g4Wl9fZ3BnQTAxNzEiLCJleHBpcmF0aW9uX2RhdGUiOjE3MTg3MDExMTcuMDg2MDYxNSwicmVmcmVzaF90b2tlbiI6IjEvLzBnNUtPRHR3QXc2cEdDZ1lJQVJBQUdCQVNOUUYtTDlJcm8tdDh2N3J1ZXVMcHFPdWxsNGJIdVlldlBJU3Ryck1nQ0JGUTQtTTBZZi1DemtyT3lweDdzemRTa09wYVNnVUUiLCJpZF9wcm9maWxlIjp7InByb3ZpZGVyIjoiR09PR0xFIiwiaWQiOiIxMTM4MDgzMjEwOTU5ODkwMzI2OTEiLCJuYW1lIjoiXHU1MjE4TUMiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSjN2Q0VlTng3RVJXeXB5ZWduYUhLcGVraF9nd1I4SjhJalJNRDZmalVzcXhDWERRPXM5Ni1jIiwibG9jYWxlIjoiZW5fVVMiLCJlbWFpbCI6Im15bGFuZDY2Njg4OEBnbWFpbC5jb20ifSwiZW1haWwiOiIiLCJtb2JpbGVfbnVtYmVyIjoiIiwiYXJlYV9jb2RlIjoiIiwibW9iaWxlIjoiIiwiZXhwIjoxNzE5MzMyOTcxLCJhdWQiOiI2NTI4YWQzOTZmYWExMzY3ZmVlNmQxNmMifQ.7YNiO23p3VIJqjNEUtmF-hKwiZBgdhPVixlzQSidi-E,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzc29faWQiOiIzMWQxZGI3Mi04MjczLTQ0N2YtOWUxOC03Y2FlMDBmMzMyMzIiLCJlbWFpbCI6IiIsIm1vYmlsZV9udW1iZXIiOiIxNTkxOTQwMDM5MiIsImFyZWFfY29kZSI6Iis4NiIsIm1vYmlsZSI6IjE1OTE5NDAwMzkyIiwiZXhwIjoxNzE5NTIyNzQyLCJhdWQiOiI2NTI4YWQzOTZmYWExMzY3ZmVlNmQxNmMifQ.iUIgjJdnDAbyiQGSKoAozBhGQqlrln7_4RGp1LBP3lI", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "🐰Step", url: "https://stepapi.xinu.ink/v1/chat/completions", key: "a485a9480a2cbd767c77511c45e7fe4a44ee3a42@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY3RpdmF0ZWQiOnRydWUsImFnZSI6MiwiYmFuZWQiOmZhbHNlLCJjcmVhdGVfYXQiOjE3MTg2OTk3NzIsImV4cCI6MTcxODcwMTU3MiwibW9kZSI6Miwib2FzaXNfaWQiOjExNDI3MjM2ODA4NzU0NzkwNCwidmVyc2lvbiI6Mn0.FZjcvkWc1jvVfZtxdzJ5h-nGrbM_JWElBzJdshX13Z0...eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfaWQiOjEwMjAwLCJkZXZpY2VfaWQiOiJhNDg1YTk0ODBhMmNiZDc2N2M3NzUxMWM0NWU3ZmU0YTQ0ZWUzYTQyIiwiZXhwIjoxNzIxMjg5OTc0LCJvYXNpc19pZCI6MTE0MjcyMzY4MDg3NTQ3OTA0LCJwbGF0Zm9ybSI6IndlYiIsInZlcnNpb24iOjJ9.Z1FgSsc0ceatQY8-3vKHxaAY_4Shx0YA3qxNkeAdaho,ac889f3f834f0a970214f016417436d41aacfd9b@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY3RpdmF0ZWQiOnRydWUsImFnZSI6MSwiYmFuZWQiOmZhbHNlLCJjcmVhdGVfYXQiOjE3MTg4ODc3MTEsImV4cCI6MTcxODg4OTUxMSwibW9kZSI6Miwib2FzaXNfaWQiOjExNTA2ODE2OTMxOTYyMDYwOCwidmVyc2lvbiI6Mn0.vZrLXq8VmNgLKXOU656N_PjzQEh_08ueEof8GB-XGhE...eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfaWQiOjEwMjAwLCJkZXZpY2VfaWQiOiJhYzg4OWYzZjgzNGYwYTk3MDIxNGYwMTY0MTc0MzZkNDFhYWNmZDliIiwiZXhwIjoxNzIxNDc5NzExLCJvYXNpc19pZCI6MTE1MDY4MTY5MzE5NjIwNjA4LCJwbGF0Zm9ybSI6IndlYiIsInZlcnNpb24iOjJ9.q1ypbf8XUOdyhBWtYf_DHoxJXiEKV8fCWm-MdX8B9YI", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "✨Spark ", url: "https://sparkapi.xinu.ink/v1/chat/completions", key: "d0a840db-9ef1-4f45-872a-74f206bc46e2,74acf343-71e7-45ad-98ea-5ea9462edcfa", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+						{ name: "🫘Doubao", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_83SPfqVW05UCt4WYvgJlU9W3TgClSDDzqkvNzXjV2q2srbW2DFSwjELTz4SEknQc", botId: "7383976691804733452", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: true },
+						{ name: "💜紫东太初", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_83SPfqVW05UCt4WYvgJlU9W3TgClSDDzqkvNzXjV2q2srbW2DFSwjELTz4SEknQc", botId: "7383978669951746098", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: true },
+						{ name: "💦Baichuan4", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_uqcc1qS1VJVgu8TrV4QFoh931DDa25Z03cgIhWQOeywPFnFQ0ioy56ajtQ2jy2Rm", botId: "7383939253954592787", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: true },
+						{ name: "🌿Chato", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_uqcc1qS1VJVgu8TrV4QFoh931DDa25Z03cgIhWQOeywPFnFQ0ioy56ajtQ2jy2Rm", botId: "7383943057160339465", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "😵‍💫Gemini", url: "https://geminiapi.xinu.ink/v1/chat/completions", key: "AIzaSyCXdsq9kMbGHEd8g4U3siuCki--gd-x4ZU", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "💪🏻Bing", url: "https://bingapi.xinu.ink/api/v1/chat/completions", key: "", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: false },
+                        { name: "🪄Llama3", url: "https://llama3api.xinu.ink/v1/chat/completions", key: "pat_w2Fixe2r0tRXvp72MIp4Q32Dc26Yu5gF2HC6Rue0z8HNohA01CY64Vvy2zNwjLeD", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "👑GPT-4", url: "https://g4api2.xinu.ink/v1/chat/completions", key: "pat_N52LsGwHm7l6EvAl4yVFArr9g8FRN3tYiYVM6UeMwGUDqqAGkIXGcAuJHj8n2bYQ", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "💎GPT-4o", url: "https://4oapi2.xinu.ink/v1/chat/completions", key: "pat_hEfHMgyHjdZ3cOlqQoHvY0fINUUhf4aDF1wDjqnJSPnZluvoSw99RuxEJwyqpl2y", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                        { name: "👑GPT-4（备用）", url: "https://gpt4api.xinu.ink/v1/chat/completions", key: "pat_CQTaggTGFD6vG9Q4iZ5k5GKoWlYbo8KxVGz0VDgrjYj1bXaiPYypmjbv1Ijtnoqi", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: false },
+                        { name: "💎GPT-4o（备用）", url: "https://4oapi.xinu.ink/v1/chat/completions", key: "pat_3xiUrFuCvi4fpSwF5EtJZSm3Wh0j2jDBxtdOTXXT534hJqSRWZBZlubivaK71giT", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: false },
+                        { name: "💫GPT-3.5", url: "https://35api.xinu.ink/v1/chat/completions", key: "pat_daW54gDQlWYDZJyIyL5acg1GpLZZW0iFjfsi6BhEGWwHFsHAZ8yrDEPc6gakGlTK", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+						{ name: "🪗低配乐队", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_83SPfqVW05UCt4WYvgJlU9W3TgClSDDzqkvNzXjV2q2srbW2DFSwjELTz4SEknQc", botId: "7384040353152188431", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: false },
+                        { name: "✍🏻超长写手", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_83SPfqVW05UCt4WYvgJlU9W3TgClSDDzqkvNzXjV2q2srbW2DFSwjELTz4SEknQc", botId: "7384412606246944806", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: false },
+						{ name: "🎨聚合画师", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_83SPfqVW05UCt4WYvgJlU9W3TgClSDDzqkvNzXjV2q2srbW2DFSwjELTz4SEknQc", botId: "7384054985380331574", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: false },
+						{ name: "🎶Suno", url: "https://sunoapi.xinu.ink/v1/chat/completions", key: "", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: false },								
+						{ name: "🧠思维导图大师", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_uqcc1qS1VJVgu8TrV4QFoh931DDa25Z03cgIhWQOeywPFnFQ0ioy56ajtQ2jy2Rm", botId: "7384247641476956187", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: false },
+                        { name: "📊统计图表生成", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_uqcc1qS1VJVgu8TrV4QFoh931DDa25Z03cgIhWQOeywPFnFQ0ioy56ajtQ2jy2Rm", botId: "7384268583939473446", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: false },
+                        { name: "⏬视频解析", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_uqcc1qS1VJVgu8TrV4QFoh931DDa25Z03cgIhWQOeywPFnFQ0ioy56ajtQ2jy2Rm", botId: "7383885987832692790", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: false },
+                        { name: "📎流程图生成机", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_83SPfqVW05UCt4WYvgJlU9W3TgClSDDzqkvNzXjV2q2srbW2DFSwjELTz4SEknQc", botId: "7384795713571504164", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: false },
+            ],
+            chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
+        };
+    },
+    mounted() {
+        this.initChat();
+        this.applyDarkMode();
+    },
+    methods: {
+        initChat() {
+            this.messages = [];
+            this.scrollToBottom();
+        },
+        getResponses() {
+            if (!this.question.trim()) return;
+
+            const userMessage = {
+                id: Date.now(),
+                content: this.question,
+                rawContent: this.question,
+                type: 'user-bubble',
+            };
+            this.messages.push(userMessage);
+            this.scrollToBottom();
+            this.saveCurrentChat();
+
+            this.models.forEach(model => {
+                if (model.selected) {
+                    model.loading = true;
+                    if (model.requestType === "type1") {
+                        this.sendRequestType1(model);
+                    } else if (model.requestType === "doubao") {
+                        this.sendRequestDoubao(model);
+                    }
+                }
+            });
+
+            this.question = '';
+        },
+        sendRequestType1(model) {
+            fetch(model.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${model.key}`,
+                },
+                body: JSON.stringify({
+                    messages: [{ role: 'user', content: this.question }],
+                    stream: false,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                model.loading = false;
+                if (data.choices && data.choices.length > 0) {
+                    const aiResponse = {
+                        id: Date.now() + Math.random(),
+                        content: marked.parse(data.choices[0].message.content),
+                        rawContent: data.choices[0].message.content,
+                        type: 'ai-bubble',
+                        model: model.name,
+                    };
+                    this.messages.push(aiResponse);
+                    this.scrollToBottom();
+                    this.saveCurrentChat();
+                    this.saveChatHistory();
+                }
+            })
+            .catch(error => {
+                model.loading = false;
+                model.error = error.message;
+                console.error('Error:', error);
+            });
+        },
+        sendRequestDoubao(model) {
+            fetch(model.url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${model.key}`,
+                    'Content-Type': 'application/json',
+                    'Connection': 'keep-alive',
+                    'Accept': '*/*',
+                },
+                body: JSON.stringify({
+                    bot_id: model.botId,
+                    user: model.userId,
+                    query: this.question,
+                    stream: false,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                model.loading = false;
+                const firstMessage = data.messages.find(msg => msg.role === 'assistant' && msg.type === 'answer');
+                if (firstMessage) {
+                    const aiResponse = {
+                        id: Date.now() + Math.random(),
+                        content: marked.parse(firstMessage.content),
+                        rawContent: firstMessage.content,
+                        type: 'ai-bubble',
+                        model: model.name,
+                    };
+                    this.messages.push(aiResponse);
+                    this.scrollToBottom();
+                    this.saveCurrentChat();
+                    this.saveChatHistory();
+                }
+            })
+            .catch(error => {
+                model.loading = false;
+                model.error = error.message;
+                console.error('Error:', error);
+            });
+        },
+        scrollToBottom() {
+            this.$nextTick(() => {
+                const container = this.$el.querySelector('.responses');
+                container.scrollTop = container.scrollHeight;
+            });
+        },
+        saveCurrentChat() {
+            localStorage.setItem('currentChat', JSON.stringify(this.messages));
+        },
+        saveChatHistory() {
+            const session = {
+                id: this.messages[0]?.id || Date.now(),
+                lastUpdated: Date.now(),
+                title: this.messages[0]?.rawContent || 'Untitled',
+                messages: this.messages,
+            };
+
+            const existingSessionIndex = this.chatHistory.findIndex(s => s.id === session.id);
+            if (existingSessionIndex !== -1) {
+                this.chatHistory[existingSessionIndex] = session;
+            } else {
+                this.chatHistory.push(session);
+            }
+
+            localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+        },
+        openHistoryDialog() {
+            const historyDialog = new mdui.Dialog('#history-dialog');
+            historyDialog.open();
+        },
+        getSessionSummary(session) {
+            return session.messages.map(msg => msg.rawContent).join(' ');
+        },
+        deleteSession(index) {
+            this.chatHistory.splice(index, 1);
+            localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+        },
+        exportSession(session) {
+            const blob = new Blob([JSON.stringify(session)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `session_${session.id}.json`;
+            link.click();
+        },
+        loadSession(session) {
+            this.messages = session.messages;
+            this.saveCurrentChat();
+            mdui.snackbar({
+                message: '聊天记录已载入📝',
+                position: 'right-top',
+            });
+        },
+        copyToClipboard(content) {
+            navigator.clipboard.writeText(content).then(() => {
+                mdui.snackbar({
+                    message: '已复制到剪贴板📋',
+                    position: 'right-top',
+                });
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        },
+        showModelSelection() {
+            const modelSelectionDialog = new mdui.Dialog('#model-selection-dialog');
+            modelSelectionDialog.open();
+        },
+        toggleDarkMode() {
+            this.darkMode = !this.darkMode;
+            this.applyDarkMode();
+        },
+        applyDarkMode() {
+            document.body.classList.toggle('dark-mode', this.darkMode);
+            document.body.classList.toggle('light-mode', !this.darkMode);
+        },
+        refreshPage() {
+            location.reload();
+        },
+        // 新增方法来处理全选
+        toggleAll() {
+            this.models.forEach(model => {
+                model.selected = this.allSelected;
+            });
+        },
+    },
+    watch: {
+        models: {
+            handler(newModels) {
+                const allSelected = newModels.every(model => model.selected);
+                if (this.allSelected !== allSelected) {
+                    this.allSelected = allSelected;
+                }
+            },
+            deep: true,
+        },
+    },
+}).mount('#app');
+</script>
+</body>
+</html>
