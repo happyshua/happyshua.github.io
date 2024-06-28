@@ -213,6 +213,17 @@
 </head>
 <body class="mdui-theme-primary-indigo mdui-theme-accent-pink" :class="darkMode ? 'dark-mode' : 'light-mode'">
     <div id="app" class="mdui-container">
+        <!-- 确认删除对话框 -->
+        <div id="confirm-delete-dialog" class="mdui-dialog">
+            <div class="mdui-dialog-title">确认删除</div>
+            <div class="mdui-dialog-content">
+                <p>你确定要删除这个会话吗？此操作无法撤销。</p>
+            </div>
+            <div class="mdui-dialog-actions">
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>取消</button>
+                <button class="mdui-btn mdui-ripple" @click="confirmDelete">确认</button>
+            </div>
+        </div>
         <div class="top-bar">
             <div>
                 <button class="mdui-btn mdui-btn-icon" @click="openHistoryDialog">
@@ -269,34 +280,22 @@
         <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
     </div>
 </div>
-
         <!-- Chat History Dialog -->
         <div id="history-dialog" class="mdui-dialog history-modal">
             <div class="mdui-dialog-title">历史记录</div>
             <div class="mdui-dialog-content">
                 <div v-if="!chatHistory.length">看起来你还没和大模型们聊过天哦！快去试试～</div>
                 <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
-    <div class="history-info" @click="loadSession(session)">
-        <p>{{ new Date(session.lastUpdated).toLocaleString() }}</p>
-        <p>{{ session.title }}</p>
-    </div>
-    <div class="history-actions">
-        <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">🫗导出</button>
-        <button class="mdui-btn mdui-ripple" @click.stop="openDeleteConfirmDialog(index)">🗑️删除</button>
-    </div>
+            <div class="history-info" @click="loadSession(session)">
+                <p>{{ new Date(session.lastUpdated).toLocaleString() }}</p>
+                <p>{{ session.title }}</p>
+            </div>
+            <div class="history-actions">
+                <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">🫗导出</button>
+                <button class="mdui-btn mdui-ripple" @click.stop="openDeleteConfirmDialog(index)">🗑️删除</button>
+            </div>
 </div>
             </div>
-            <!-- Confirm Delete Dialog -->
-<div id="confirm-delete-dialog" class="mdui-dialog">
-    <div class="mdui-dialog-title">确认删除</div>
-    <div class="mdui-dialog-content">
-        <p>你确定要删除这个会话吗？此操作无法撤销。</p>
-    </div>
-    <div class="mdui-dialog-actions">
-        <button class="mdui-btn mdui-ripple" mdui-dialog-close>取消</button>
-        <button class="mdui-btn mdui-ripple" @click="confirmDelete">确认</button>
-    </div>
-</div>
             <div class="mdui-dialog-actions">
                 <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
             </div>
@@ -351,6 +350,22 @@ Vue.createApp({
         this.applyDarkMode();
     },
     methods: {
+        openDeleteConfirmDialog(index) {
+                    this.sessionToDelete = index;
+                    const confirmDialog = new mdui.Dialog('#confirm-delete-dialog');
+                    confirmDialog.open();
+                },
+                confirmDelete() {
+                    if (this.sessionToDelete !== null) {
+                        this.chatHistory.splice(this.sessionToDelete, 1);
+                        localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+                        this.sessionToDelete = null;
+                        mdui.snackbar({
+                            message: '会话已删除',
+                            position: 'right-top',
+                        });
+                    }
+                },
         initChat() {
             this.messages = [];
             this.scrollToBottom();
