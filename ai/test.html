@@ -20,6 +20,10 @@
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+    /* 自定义对话框样式，确保 z-index */
+        .mdui-dialog {
+            z-index: 9999 !important; /* 确保对话框在最顶层 */
+        }
         /* 样式保持不变 */
         body {
             font-family: Arial, sans-serif;
