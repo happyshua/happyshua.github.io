@@ -552,22 +552,7 @@ Vue.createApp({
         refreshPage() {
             location.reload();
         },
-        openDeleteConfirmDialog(index) {
-        this.sessionToDelete = index;
-        const confirmDialog = new mdui.Dialog('#confirm-delete-dialog');
-        confirmDialog.open();
-    },
-    confirmDelete() {
-        if (this.sessionToDelete !== null) {
-            this.chatHistory.splice(this.sessionToDelete, 1);
-            localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
-            this.sessionToDelete = null;
-            mdui.snackbar({
-                message: '会话已删除',
-                position: 'right-top',
-            });
-        }
-    },
+
         // 新增方法来处理全选
         toggleAll() {
             this.models.forEach(model => {
