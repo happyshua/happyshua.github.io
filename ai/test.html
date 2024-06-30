@@ -315,7 +315,7 @@ Vue.createApp({
             allSelected: false,
             models: [
                 { name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                { name: "🔮GTP", url: "https://cdp.aytsao.cn/v1/chat/completions", key: "sk-deanxv-cdp", requestType: "gtp", response: '', responseHtml: '', loading: false, error: null, selected: true },
+                                { name: "🔮GTP", url: "https://cdp.aytsao.cn/v1/chat/completions", key: "sk-deanxv-cdp", requestType: "gtp", response: '', responseHtml: '', loading: false, error: null, selected: true }, 
                 { name: "🐕GLM4", url: "https://glmapi.xinu.ink/v1/chat/completions", key: "", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
                 { name: "🐣QWen", url: "https://qwenapi.xinu.ink/v1/chat/completions", key: "", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
                 { name: "✨Spark", url: "https://sparkapi.xinu.ink/v1/chat/completions", key: "", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
@@ -367,6 +367,8 @@ Vue.createApp({
                         this.sendRequestType1(model);
                     } else if (model.requestType === "doubao") {
                         this.sendRequestDoubao(model);
+                    } else if (model.requestType === "gtp") {
+                        this.sendRequestGTP(model);
                     }
                 }
             });
@@ -448,9 +450,45 @@ Vue.createApp({
                 console.error('Error:', error);
             });
         },
+        sendRequestGTP(model) {
+            fetch(model.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${model.key}`,
+                },
+                body: JSON.stringify({
+                    model: "gpt-4-32k",
+                    messages: [{ role: 'user', content: this.question }],
+                    stream: false,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                model.loading = false;
+                if (data.message && data.message.content) {
+                    const aiResponse = {
+                        id: Date.now() + Math.random(),
+                        content: marked.parse(data.message.content),
+                        rawContent: data.message.content,
+                        type: 'ai-bubble',
+                        model: model.name,
+                    };
+                    this.messages.push(aiResponse);
+                    this.scrollToBottom();
+                    this.saveCurrentChat();
+                    this.saveChatHistory();
+                }
+            })
+            .catch(error => {
+                model.loading = false;
+                model.error = error.message;
+                console.error('Error:', error);
+            });
+        },
         scrollToBottom() {
             this.$nextTick(() => {
-                const container = this.$el.querySelector('.responses');
+                const container = this.$el.querySelector('.chat-container');
                 container.scrollTop = container.scrollHeight;
             });
         },
@@ -459,8 +497,7 @@ Vue.createApp({
         },
         saveChatHistory() {
             const session = {
-                id: this.messages[0]?.id || Date.now(),
-                lastUpdated: Date.now(),
+                id: Date.now(),
                 title: this.messages[0]?.rawContent || 'Untitled',
                 messages: this.messages,
             };
@@ -528,41 +565,6 @@ Vue.createApp({
         toggleAll() {
             this.models.forEach(model => {
                 model.selected = this.allSelected;
-            });
-        },
-        sendRequestGTP(model) {
-            fetch(model.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${model.key}`,
-                },
-                body: JSON.stringify({
-                    messages: [{ role: 'user', content: this.question }],
-                    stream: false,
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                model.loading = false;
-                if (data.choices && data.choices.length > 0) {
-                    const aiResponse = {
-                        id: Date.now() + Math.random(),
-                        content: marked.parse(data.choices[0].message.content),
-                        rawContent: data.choices[0].message.content,
-                        type: 'ai-bubble',
-                        model: model.name,
-                    };
-                    this.messages.push(aiResponse);
-                    this.scrollToBottom();
-                    this.saveCurrentChat();
-                    this.saveChatHistory();
-                }
-            })
-            .catch(error => {
-                model.loading = false;
-                model.error = error.message;
-                console.error('Error:', error);
             });
         },
     },
