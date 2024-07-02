@@ -1,4 +1,6 @@
 
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -319,7 +321,9 @@ Vue.createApp({
                         { name: "💎GPT-4o", url: "https://gpt4oapi.xinu.ink/v1/chat/completions", key: "sk-deanxv-cdp", requestType: "gtp", response: '', responseHtml: '', loading: false, error: null, selected: true }, 
 						{ name: "💨GPT-4Turbo", url: "https://gpt4tapi.xinu.ink/v1/chat/completions", key: "sk-deanxv-cdp", requestType: "gtp", response: '', responseHtml: '', loading: false, error: null, selected: false }, 
 						{ name: "👑GPT-4", url: "https://g4api.xinu.ink/v1/chat/completions", key: "sk-deanxv-cdp", requestType: "gtp", response: '', responseHtml: '', loading: false, error: null, selected: true }, 
-                        { name: "🎏Bing", url: "https://bing.xinu.ink/v1/chat/completions", key: "", requestType: "gtp", response: '', responseHtml: '', loading: false, error: null, selected: true }, 
+                        { name: "🤪🎏Bing创造", url: "https://bing.xinu.ink/v1/chat/completions", key: "sk-123456", requestType: "bing", response: '', responseHtml: '', loading: false, error: null, selected: true },
+						{ name: "😜🎏Bing均衡", url: "https://bing.xinu.ink/v1/chat/completions", key: "sk-123456", requestType: "bingbl", response: '', responseHtml: '', loading: false, error: null, selected: true },
+						{ name: "😝🎏Bing精确", url: "https://bing.xinu.ink/v1/chat/completions", key: "sk-123456", requestType: "bingpr", response: '', responseHtml: '', loading: false, error: null, selected: true },
 						{ name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw,eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyNjY2MzIxMywiaWF0IjoxNzE4ODg3MjEzLCJqdGkiOiJjcHEyNmJkdmJmNnRwNGsydTlhMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjcHEyNmJkdmJmNnRwNGsydTk4ZyIsInNwYWNlX2lkIjoiY3BxMjZiZHZiZjZ0cDRrMnU5N2ciLCJhYnN0cmFjdF91c2VyX2lkIjoiY3BxMjZiZHZiZjZ0cDRrMnU5NzAifQ.RJmyBPr5VXzwCxhPgFOgsAhQYdprx_ELA3H3a-7J8Kb13hLP5TcF5tV66S0aNUqUHwBx9AQAFQ_sWNC7AiePkQ", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🐕GLM4", url: "https://glmapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxODY5OTU5MywianRpIjoiMjI3NzE1NjQtOWVhMi00YzZlLTgyY2UtZTEyZTEyNmQ3MmM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJiMzMxOTcyZWM3NTU0NmI0YjM2ZjVmMzNlMjM5NjMwNCIsIm5iZiI6MTcxODY5OTU5MywiZXhwIjoxNzM0MjUxNTkzLCJ1aWQiOiI2NjcxNDY0ODk1NWNiOGFlYzMwNDgxNTMiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.MouPoauYGPVahmM6QG6TjbyNTuPVhe35NDECjmwirUw,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxODg4ODI2NywianRpIjoiODU5MDk0YzgtYjIxYS00ODM0LWE3OWMtMmEzZTE0ZThhZTI0IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJjNjZiOWQ0OTJlZjc0OGRjOTRjZmM3ZTgxMTU5ZWI4MSIsIm5iZiI6MTcxODg4ODI2NywiZXhwIjoxNzM0NDQwMjY3LCJ1aWQiOiI2Njc0Mjc0YTRlZmRiODUxMmRjNWU3ODIiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.nd8HeSco_8LKnDs2f24end2_QIDjJ1a_mySDy_kc05Y", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🐣QWen", url: "https://qwenapi.xinu.ink/v1/chat/completions", key: "3LITHzOAbvZbFHT9J55YBCxYJ5CUsle4m*trtMUHEnF6AFvL_vshhJXJycrhAXcs0,qBLxb3I3SEmqcKYtreMU*Ent6AHvLFvsFhJ_PTEka9AVI7a5tLvNX4OTOTbD5WVY0", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
@@ -334,7 +338,7 @@ Vue.createApp({
 						{ name: "🌿Chato", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_uqcc1qS1VJVgu8TrV4QFoh931DDa25Z03cgIhWQOeywPFnFQ0ioy56ajtQ2jy2Rm", botId: "7383943057160339465", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🌘Moonshot", url: "https://api.coze.cn/open_api/v2/chat", key: "pat_pVUJYq9hbsnGt3RK3W4LF5iczeqO5wapztWSD1vLbZthFniSJErQ2ByMlqxsOhwL", botId: "7385025532196945974", userId: "29032201862555", requestType: "doubao", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "😵‍💫Gemini", url: "https://geminiapi.xinu.ink/v1/chat/completions", key: "AIzaSyCXdsq9kMbGHEd8g4U3siuCki--gd-x4ZU", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
-                        { name: "💪🏻Bing", url: "https://bingapi.xinu.ink/api/v1/chat/completions", key: "", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: false },
+                        { name: "💪🏻Bing（备用）", url: "https://bingapi.xinu.ink/api/v1/chat/completions", key: "", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: false },
                         { name: "🪄Llama3", url: "https://llama3api.xinu.ink/v1/chat/completions", key: "sk-deanxv-cdp", requestType: "gtp", response: '', responseHtml: '', loading: false, error: null, selected: true }, 
                         { name: "👑GPT-4（备用）", url: "https://gpt4api.xinu.ink/v1/chat/completions", key: "pat_CQTaggTGFD6vG9Q4iZ5k5GKoWlYbo8KxVGz0VDgrjYj1bXaiPYypmjbv1Ijtnoqi", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: false },
                         { name: "💎GPT-4o（备用）", url: "https://4oapi.xinu.ink/v1/chat/completions", key: "pat_3xiUrFuCvi4fpSwF5EtJZSm3Wh0j2jDBxtdOTXXT534hJqSRWZBZlubivaK71giT", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: false },
@@ -392,17 +396,23 @@ Vue.createApp({
             this.saveCurrentChat();
 
             this.models.forEach(model => {
-                if (model.selected) {
-                    model.loading = true;
-                    if (model.requestType === "type1") {
-                        this.sendRequestType1(model);
-                    } else if (model.requestType === "doubao") {
-                        this.sendRequestDoubao(model);
-                    } else if (model.requestType === "gtp") {
-                        this.sendRequestGTP(model); // 新增的请求方式
-                    }
-                }
-            });
+                            if (model.selected) {
+                                model.loading = true;
+                                if (model.requestType === "type1") {
+                                    this.sendRequestType1(model);
+                                } else if (model.requestType === "doubao") {
+                                    this.sendRequestDoubao(model);
+                                } else if (model.requestType === "gtp") {
+                                    this.sendRequestGTP(model);
+                                } else if (model.requestType === "bing") {
+                                    this.sendRequestBing(model);
+                                } else if (model.requestType === "bingbl") {
+                                    this.sendRequestBingbl(model);
+                                }else if (model.requestType === "bingpr") {
+                                    this.sendRequestBingpr(model);
+                                }
+                            }
+                        });
 
             this.question = '';
         },
@@ -441,6 +451,114 @@ Vue.createApp({
                 console.error('Error:', error);
             });
         },
+		sendRequestBing(model) {
+		            fetch(model.url, {
+		                method: 'POST',
+		                headers: {
+		                    'Content-Type': 'application/json',
+		                    'Authorization': `Bearer ${model.key}`,
+		                },
+		                body: JSON.stringify({
+		                    model: "Creative-g4t",
+		                    messages: [{ role: 'user', content: this.question }],
+		                    stream: false,
+		                }),
+		            })
+		            .then(response => response.json())
+		            .then(data => {
+		                model.loading = false;
+		                if (data.choices && data.choices.length > 0) {
+		                    const aiResponse = {
+		                        id: Date.now() + Math.random(),
+		                        content: marked.parse(data.choices[0].message.content),
+		                        rawContent: data.choices[0].message.content,
+		                        type: 'ai-bubble',
+		                        model: model.name,
+		                    };
+		                    this.messages.push(aiResponse);
+		                    this.scrollToBottom();
+		                    this.saveCurrentChat();
+		                    this.saveChatHistory();
+		                }
+		            })
+		            .catch(error => {
+		                model.loading = false;
+		                model.error = error.message;
+		                console.error('Error:', error);
+		            });
+		        },
+				sendRequestBingbl(model) {
+				            fetch(model.url, {
+				                method: 'POST',
+				                headers: {
+				                    'Content-Type': 'application/json',
+				                    'Authorization': `Bearer ${model.key}`,
+				                },
+				                body: JSON.stringify({
+				                    model: "Balanced-g4t",
+				                    messages: [{ role: 'user', content: this.question }],
+				                    stream: false,
+				                }),
+				            })
+				            .then(response => response.json())
+				            .then(data => {
+				                model.loading = false;
+				                if (data.choices && data.choices.length > 0) {
+				                    const aiResponse = {
+				                        id: Date.now() + Math.random(),
+				                        content: marked.parse(data.choices[0].message.content),
+				                        rawContent: data.choices[0].message.content,
+				                        type: 'ai-bubble',
+				                        model: model.name,
+				                    };
+				                    this.messages.push(aiResponse);
+				                    this.scrollToBottom();
+				                    this.saveCurrentChat();
+				                    this.saveChatHistory();
+				                }
+				            })
+				            .catch(error => {
+				                model.loading = false;
+				                model.error = error.message;
+				                console.error('Error:', error);
+				            });
+				        },
+						sendRequestBingpr(model) {
+						            fetch(model.url, {
+						                method: 'POST',
+						                headers: {
+						                    'Content-Type': 'application/json',
+						                    'Authorization': `Bearer ${model.key}`,
+						                },
+						                body: JSON.stringify({
+						                    model: "Precise-g4t",
+						                    messages: [{ role: 'user', content: this.question }],
+						                    stream: false,
+						                }),
+						            })
+						            .then(response => response.json())
+						            .then(data => {
+						                model.loading = false;
+						                if (data.choices && data.choices.length > 0) {
+						                    const aiResponse = {
+						                        id: Date.now() + Math.random(),
+						                        content: marked.parse(data.choices[0].message.content),
+						                        rawContent: data.choices[0].message.content,
+						                        type: 'ai-bubble',
+						                        model: model.name,
+						                    };
+						                    this.messages.push(aiResponse);
+						                    this.scrollToBottom();
+						                    this.saveCurrentChat();
+						                    this.saveChatHistory();
+						                }
+						            })
+						            .catch(error => {
+						                model.loading = false;
+						                model.error = error.message;
+						                console.error('Error:', error);
+						            });
+						        },
         sendRequestDoubao(model) {
             fetch(model.url, {
                 method: 'POST',
