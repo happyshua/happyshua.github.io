@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,10 +21,10 @@
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-    /* 自定义对话框样式，确保 z-index */
+        /* 自定义对话框样式，确保 z-index */
         #confirm-delete-dialog.mdui-dialog {
-    z-index: 9999 !important; /* 确保对话框在最顶层 */
-}
+            z-index: 9999 !important; /* 确保对话框在最顶层 */
+        }
         /* 样式保持不变 */
         body {
             font-family: Arial, sans-serif;
@@ -118,13 +119,14 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            background-color: var(--app-background-color);
+            background-color: hsla(0, 0%, 100%, 0.75); /* 半透明背景 */
+            backdrop-filter: blur(10px); /* 毛玻璃效果 */
             box-sizing: border-box;
             gap: 10px;
         }
         .input-container button {
             padding: 10px;
-            background-color: #007bff;
+            background-color: rgba(0, 123, 255, 0.6);
             border: none;
             color: #fff;
             border-radius: 5px;
@@ -132,19 +134,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(15px); /* 按钮毛玻璃效果 */
         }
         .input-container button:hover {
-            background-color: #0056b3;
+            background-color: rgba(0, 86, 179, 0.6);
         }
-        .input-container input {
+        .input-container textarea {
             flex: 1;
             padding: 10px;
-            border: 1px solid var(--border-color);
+            border: none;
             border-radius: 5px;
             outline: none;
             max-width: 600px;
             color: var(--text-color);
-            background-color: var(--input-background-color);
+            background-color: hsla(0, 0%, 100%, 0.75); /* 半透明背景 */
+            resize: none; /* 禁用 textarea 的缩放 */
+            max-height: 200px; /* 最大高度为 200px（约 4 行） */
+            overflow-y: auto; /* 启用垂直滚动条 */
+            backdrop-filter: blur(15px); /* 毛玻璃效果 */
         }
         .input-container .icon-button {
             padding: 0 10px;
@@ -156,6 +163,7 @@
             align-items: center;
             justify-content: center;
             color: var(--text-color);
+            backdrop-filter: blur(15px); /* 按钮毛玻璃效果 */
         }
         .history-modal {
             padding: 20px;
@@ -208,12 +216,44 @@
             --ai-bubble-bg: #e2e3e5;
             --model-name-color: #888;
         }
-        		/* 确保对话框初始状态为隐藏 */
-		#model-selection-dialog,
-		#history-dialog {
-		    display: none;
-		}
+        /* 确保对话框初始状态为隐藏 */
+        #model-selection-dialog,
+        #history-dialog {
+            display: none;
+        }
+        @supports (-webkit-backdrop-filter: none) or (backdrop-filter: none) {
+            .input-container {
+                background: hsla(0, 0%, 100%, 0.75);
+                -webkit-backdrop-filter: blur(10px);
+                backdrop-filter: blur(10px);
+            }
+            .input-container button {
+                background: rgba(0, 123, 255, 0.6);
+                -webkit-backdrop-filter: blur(15px);
+                backdrop-filter: blur(15px);
+            }
+            .input-container textarea {
+                background: hsla(0, 0%, 100%, 0.75);
+                -webkit-backdrop-filter: blur(15px);
+                backdrop-filter: blur(15px);
+            }
+            .input-container .icon-button {
+                -webkit-backdrop-filter: blur(15px);
+                backdrop-filter: blur(15px);
+            }
+			.mdui-textfield-input {
+			            width: 100%;
+			            padding: 10px;
+			            margin-bottom: 10px;
+			            border: 1px solid var(--border-color);
+			            border-radius: 5px;
+			            outline: none;
+			            color: var(--text-color);
+			            background-color: var(--input-background-color);
+			        }
+        }
     </style>
+    
 </head>
 <body class="mdui-theme-primary-indigo mdui-theme-accent-pink" :class="darkMode ? 'dark-mode' : 'light-mode'">
     <div id="app" class="mdui-container">
@@ -253,12 +293,12 @@
                 </div>
             </div>
         </div>
-        <div class="input-container mdui-textfield mdui-textfield-floating-label">
+        <div class="input-container mdui-textfield mdui-textfield-floating-label glass-effect">
             <button class="mdui-btn mdui-btn-icon icon-button" @click="showModelSelection">
                 🤖
             </button>
-            <input class="mdui-textfield-input" type="text" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses">
-            <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme" @click="getResponses">发送✈️</button>
+            <textarea class="mdui-textfield-input glass-effect-strong" v-model="question" placeholder="Type your question here" @keyup.enter="getResponses"></textarea>
+            <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme glass-effect-strong" @click="getResponses">发送✈️</button>
         </div>
 
 <!-- Model Selection Dialog -->
@@ -284,27 +324,29 @@
         <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
     </div>
 </div>
-        <!-- Chat History Dialog -->
+        <!-- 历史记录对话框 -->
         <div id="history-dialog" class="mdui-dialog history-modal">
             <div class="mdui-dialog-title">历史记录</div>
             <div class="mdui-dialog-content">
-                <div v-if="!chatHistory.length">看起来你还没和大模型们聊过天哦！快去试试～</div>
-                <div v-for="(session, index) in chatHistory" :key="session.id" class="history-session">
-            <div class="history-info" @click="loadSession(session)">
-                <p>{{ new Date(session.lastUpdated).toLocaleString() }}</p>
-                <p>{{ session.title }}</p>
-            </div>
-            <div class="history-actions">
-                <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">🫗导出</button>
-                <button class="mdui-btn mdui-ripple" @click.stop="openDeleteConfirmDialog(index)">🗑️删除</button>
-            </div>
-</div>
+                <div>
+                    <input type="text" v-model="searchKeyword" placeholder="搜索历史记录" class="mdui-textfield-input">
+                </div>
+                <div v-if="!filteredChatHistory.length">没有匹配的历史记录。</div>
+                <div v-for="(session, index) in filteredChatHistory" :key="session.id" class="history-session">
+                    <div class="history-info" @click="loadSession(session)">
+                        <p>{{ new Date(session.lastUpdated).toLocaleString() }}</p>
+                        <p>{{ session.title }}</p>
+                    </div>
+                    <div class="history-actions">
+                        <button class="mdui-btn mdui-ripple" @click.stop="exportSession(session)">🫗导出</button>
+                        <button class="mdui-btn mdui-ripple" @click.stop="openDeleteConfirmDialog(index)">🗑️删除</button>
+                    </div>
+                </div>
             </div>
             <div class="mdui-dialog-actions">
                 <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭❌</button>
             </div>
         </div>
-    </div>
 <script>
 Vue.createApp({
     data() {
@@ -352,23 +394,37 @@ Vue.createApp({
             ],
             chatHistory: JSON.parse(localStorage.getItem('chatHistory')) || [],
             sessionToDelete: null,
+			searchKeyword: '',
         };
     },
+	computed: {
+	    filteredChatHistory() {
+	        if (!this.searchKeyword) {
+	            return this.chatHistory;
+	        }
+	        return this.chatHistory.filter(session => 
+	            session.title.includes(this.searchKeyword) ||
+	            new Date(session.lastUpdated).toLocaleString().includes(this.searchKeyword)
+	        );
+	    }
+	},
+
     mounted() {
         this.initChat();
         this.applyDarkMode();
     },
     methods: {
         openDeleteConfirmDialog(index) {
-                    this.sessionToDelete = index;
-                    const confirmDialog = new mdui.Dialog('#confirm-delete-dialog');
-                    confirmDialog.open();
-                },
+                this.sessionToDelete = index;
+                this.confirmDialog = new mdui.Dialog('#confirm-delete-dialog'); // 保存对话框实例
+                this.confirmDialog.open();
+            },
                 confirmDelete() {
                     if (this.sessionToDelete !== null) {
                         this.chatHistory.splice(this.sessionToDelete, 1);
                         localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
                         this.sessionToDelete = null;
+						this.confirmDialog.close(); // 关闭对话框
                         mdui.snackbar({
                             message: '会话已删除',
                             position: 'right-top',
