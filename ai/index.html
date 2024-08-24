@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -119,8 +120,9 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            background-color: hsla(0, 0%, 100%, 0.75); /* 半透明背景 */
+            background-color: var(--glass-background-color); /* 半透明背景 */
             backdrop-filter: blur(10px); /* 毛玻璃效果 */
+			color: var(--glass-text-color);
             box-sizing: border-box;
             gap: 10px;
         }
@@ -128,7 +130,7 @@
             padding: 10px;
             background-color: rgba(0, 123, 255, 0.6);
             border: none;
-            color: #fff;
+            color: var(--glass-text-color);
             border-radius: 5px;
             cursor: pointer;
             display: flex;
@@ -146,8 +148,8 @@
             border-radius: 5px;
             outline: none;
             max-width: 600px;
-            color: var(--text-color);
-            background-color: hsla(0, 0%, 100%, 0.75); /* 半透明背景 */
+            color: var(--glass-text-color);
+            background-color: var(--glass-background-color);
             resize: none; /* 禁用 textarea 的缩放 */
             max-height: 200px; /* 最大高度为 200px（约 4 行） */
             overflow-y: auto; /* 启用垂直滚动条 */
@@ -162,7 +164,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-color);
+            color: var(--glass-text-color);
             backdrop-filter: blur(15px); /* 按钮毛玻璃效果 */
         }
         .history-modal {
@@ -205,6 +207,8 @@
             --user-bubble-bg: #2e3b4e;
             --ai-bubble-bg: #3a3a3a;
             --model-name-color: #bbb;
+            --glass-background-color: hsla(0, 0%, 20%, 0.75);
+            --glass-text-color: #ffffff;
         }
         .light-mode {
             --background-color: #f0f0f0;
@@ -215,6 +219,8 @@
             --user-bubble-bg: #cce5ff;
             --ai-bubble-bg: #e2e3e5;
             --model-name-color: #888;
+            --glass-background-color: hsla(0, 0%, 100%, 0.75);
+            --glass-text-color: #000000;
         }
         /* 确保对话框初始状态为隐藏 */
         #model-selection-dialog,
@@ -223,7 +229,7 @@
         }
         @supports (-webkit-backdrop-filter: none) or (backdrop-filter: none) {
             .input-container {
-                background: hsla(0, 0%, 100%, 0.75);
+                background: var(--glass-background-color);
                 -webkit-backdrop-filter: blur(10px);
                 backdrop-filter: blur(10px);
             }
@@ -233,7 +239,7 @@
                 backdrop-filter: blur(15px);
             }
             .input-container textarea {
-                background: hsla(0, 0%, 100%, 0.75);
+                background: var(--glass-background-color);
                 -webkit-backdrop-filter: blur(15px);
                 backdrop-filter: blur(15px);
             }
@@ -363,7 +369,7 @@ Vue.createApp({
                         { name: "🤪🎏Bing创造", url: "https://bing.xinu.ink/v1/chat/completions", key: "sk-123456", requestType: "bing", response: '', responseHtml: '', loading: false, error: null, selected: true },
 						{ name: "😜🎏Bing均衡", url: "https://japan.xinu.ink/v1/chat/completions", key: "sk-123456", requestType: "bingbl", response: '', responseHtml: '', loading: false, error: null, selected: true },
 						{ name: "😝🎏Bing精确", url: "https://bing1.xinu.ink/v1/chat/completions", key: "sk-123456", requestType: "bingpr", response: '', responseHtml: '', loading: false, error: null, selected: true },
-     { name: "🧩Command R+", url: "https://commandrapi.xinu.ink/v1/chat/completions", key: "", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
+						{ name: "🧩Command R+", url: "https://commandrapi.xinu.ink/v1/chat/completions", key: "", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
 						{ name: "🐱KIMI", url: "https://kimiapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyMjQ5NDY2NSwiaWF0IjoxNzE0NzE4NjY1LCJqdGkiOiJjb3E4ZmlhdG5uMHF0MzU3dGplMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjb2RjbHI5a3FxNG44aW12MTA5ZyIsInNwYWNlX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOTAiLCJhYnN0cmFjdF91c2VyX2lkIjoiY29kY2xyOWtxcTRuOGltdjEwOGcifQ.75yKmK85RHuBv_c-QqfhPAehqz6wW4zAzx2jBJvZq1KN23obEk9_Bt1uOoCDGiHEiEdXjiRZEUiwYUk3uIzVFw,eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1c2VyLWNlbnRlciIsImV4cCI6MTcyNjY2MzIxMywiaWF0IjoxNzE4ODg3MjEzLCJqdGkiOiJjcHEyNmJkdmJmNnRwNGsydTlhMCIsInR5cCI6InJlZnJlc2giLCJzdWIiOiJjcHEyNmJkdmJmNnRwNGsydTk4ZyIsInNwYWNlX2lkIjoiY3BxMjZiZHZiZjZ0cDRrMnU5N2ciLCJhYnN0cmFjdF91c2VyX2lkIjoiY3BxMjZiZHZiZjZ0cDRrMnU5NzAifQ.RJmyBPr5VXzwCxhPgFOgsAhQYdprx_ELA3H3a-7J8Kb13hLP5TcF5tV66S0aNUqUHwBx9AQAFQ_sWNC7AiePkQ", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🐕GLM4", url: "https://glmapi.xinu.ink/v1/chat/completions", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxODY5OTU5MywianRpIjoiMjI3NzE1NjQtOWVhMi00YzZlLTgyY2UtZTEyZTEyNmQ3MmM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJiMzMxOTcyZWM3NTU0NmI0YjM2ZjVmMzNlMjM5NjMwNCIsIm5iZiI6MTcxODY5OTU5MywiZXhwIjoxNzM0MjUxNTkzLCJ1aWQiOiI2NjcxNDY0ODk1NWNiOGFlYzMwNDgxNTMiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.MouPoauYGPVahmM6QG6TjbyNTuPVhe35NDECjmwirUw,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxODg4ODI2NywianRpIjoiODU5MDk0YzgtYjIxYS00ODM0LWE3OWMtMmEzZTE0ZThhZTI0IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJjNjZiOWQ0OTJlZjc0OGRjOTRjZmM3ZTgxMTU5ZWI4MSIsIm5iZiI6MTcxODg4ODI2NywiZXhwIjoxNzM0NDQwMjY3LCJ1aWQiOiI2Njc0Mjc0YTRlZmRiODUxMmRjNWU3ODIiLCJ1cGxhdGZvcm0iOiJwYyIsInJvbGVzIjpbInVuYXV0aGVkX3VzZXIiXX0.nd8HeSco_8LKnDs2f24end2_QIDjJ1a_mySDy_kc05Y", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
                         { name: "🐣QWen", url: "https://qwenapi.xinu.ink/v1/chat/completions", key: "3LITHzOAbvZbFHT9J55YBCxYJ5CUsle4m*trtMUHEnF6AFvL_vshhJXJycrhAXcs0,qBLxb3I3SEmqcKYtreMU*Ent6AHvLFvsFhJ_PTEka9AVI7a5tLvNX4OTOTbD5WVY0", requestType: "type1", response: '', responseHtml: '', loading: false, error: null, selected: true },
@@ -786,5 +792,6 @@ Vue.createApp({
     },
 }).mount('#app');
 </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"8b52bad90fde6875","version":"2024.7.0","r":1,"token":"6a2610f50231498b80e250c9e456a1c9","serverTiming":{"name":{"cfL4":true}}}' crossorigin="anonymous"></script>
 </body>
 </html>
