@@ -37,15 +37,15 @@
     <!-- 请假类型 -->
     <div id="five">
         <div class="abs lab left_len" id="qjlx">请假类型:</div><div class="abs" id="sj">事假</div>
-        <div class="abs lab" id="xylx">需要离校:</div><div class="abs" id="s">离校</div>
+        <div class="abs lab" id="xylx">需要离校:</div><div class="abs" id="s">是</div>
         <div class="abs lab left_len" id="xjgz">销假规则:</div><div class="abs" id="lx">离校、非离校请假需要销假 <span class="ck" id="gzck">查看 ></span></div>
         <div class="abs lab left_len" id="sjxjsj">实际休假时间:</div><div class="abs" id="_">-</div>
     </div>
 
     <div id="seven">
         <div class="abs left_len title">我的 请假申请</div>
-        <div class="abs lab left_len" id="kssj">开始时间:</div><div class="abs left_len2" id="kssj2">11-29 20:10</div>
-        <div class="abs lab left_len" id="jssj">结束时间:</div><div class="abs left_len2" id="jssj2">12-02 12:10</div>
+        <div class="abs lab left_len" id="kssj">开始时间:</div><div class="abs left_len2" id="kssj2">04-02 17:30</div>
+        <div class="abs lab left_len" id="jssj">结束时间:</div><div class="abs left_len2" id="jssj2">04-02 18:30</div>
         <div class="abs lab left_len splc" >审批流程:</div><div class="abs left_len2 splc">共1步 <span class="ck" id="lcck">查看 ></span></div>
         <div class="abs lab left_len qjyy" >请假原因:</div><div class="abs left_len2 qjyy">外出有事</div>
         <div class="abs lab left_len fqwz" >发起位置:</div><div class="abs left_len2 fqwz" id="wz">广东省广州市番禺区小谷围街道大学城广药路</div>
